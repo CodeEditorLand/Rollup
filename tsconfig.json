@@ -32,6 +32,7 @@
 		"native",
 		"wasm.d.ts",
 		"src",
+		"src",
 		"src"
 	]
 }
