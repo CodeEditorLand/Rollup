@@ -1,19 +1,45 @@
 {
-  "name": "@rollup/rollup-darwin-arm64",
-  "version": "0.0.0",
-  "os": [
-    "darwin"
-  ],
-  "cpu": [
-    "arm64"
-  ],
-  "files": [
-    "rollup.darwin-arm64.node"
-  ],
-  "description": "Native bindings for Rollup",
-  "author": "Lukas Taegert-Atkinson",
-  "homepage": "https://rollupjs.org/",
-  "license": "MIT",
-  "repository": "rollup/rollup",
-  "main": "./rollup.darwin-arm64.node"
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/rollup/rollup/issues"
+	},
+	"cpu": [
+		"arm64"
+	],
+	"description": "Native bindings for Rollup",
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"files": [
+		"rollup.darwin-arm64.node"
+	],
+	"homepage": "HTTPS://GitHub.Com/rollup/rollup#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "./rollup.darwin-arm64.node",
+	"name": "@rollup/rollup-darwin-arm64",
+	"os": [
+		"darwin"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/rollup/rollup.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }

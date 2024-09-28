@@ -1,3 +1,0 @@
-import './effect';
-
-console.log();

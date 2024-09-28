@@ -1,18 +1,36 @@
 {
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
+		"baseUrl": "./",
 		"forceConsistentCasingInFileNames": true,
 		"module": "ESNext",
 		"moduleResolution": "Node",
 		"noEmitOnError": true,
 		"noUnusedParameters": true,
+		"outDir": "Target",
 		"pretty": true,
 		"resolveJsonModule": true,
+		"rootDir": "src",
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2022",
 		"useDefineForClassFields": false
 	},
-	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts", "native", "wasm.d.ts"],
-	"exclude": ["dist", "node_modules", "test/typescript", "browser/dist"]
+	"exclude": [
+		"dist",
+		"node_modules",
+		"test/typescript",
+		"browser/dist"
+	],
+	"extends": "@playform/build/tsconfig",
+	"include": [
+		"typings/**/*.d.ts",
+		"src",
+		"cli",
+		"browser",
+		"rollup.config.ts",
+		"native",
+		"wasm.d.ts",
+		"src"
+	]
 }

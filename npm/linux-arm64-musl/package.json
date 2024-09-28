@@ -1,22 +1,48 @@
 {
-  "name": "@rollup/rollup-linux-arm64-musl",
-  "version": "0.0.0",
-  "os": [
-    "linux"
-  ],
-  "cpu": [
-    "arm64"
-  ],
-  "files": [
-    "rollup.linux-arm64-musl.node"
-  ],
-  "description": "Native bindings for Rollup",
-  "author": "Lukas Taegert-Atkinson",
-  "homepage": "https://rollupjs.org/",
-  "license": "MIT",
-  "repository": "rollup/rollup",
-  "libc": [
-    "musl"
-  ],
-  "main": "./rollup.linux-arm64-musl.node"
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/rollup/rollup/issues"
+	},
+	"cpu": [
+		"arm64"
+	],
+	"description": "Native bindings for Rollup",
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"files": [
+		"rollup.linux-arm64-musl.node"
+	],
+	"homepage": "HTTPS://GitHub.Com/rollup/rollup#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"libc": [
+		"musl"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "./rollup.linux-arm64-musl.node",
+	"name": "@rollup/rollup-linux-arm64-musl",
+	"os": [
+		"linux"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/rollup/rollup.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }

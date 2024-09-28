@@ -1,2 +1,0 @@
-import 'external';
-eval(this);

@@ -1,19 +1,45 @@
 {
-  "name": "@rollup/rollup-linux-arm-gnueabihf",
-  "version": "0.0.0",
-  "os": [
-    "linux"
-  ],
-  "cpu": [
-    "arm"
-  ],
-  "files": [
-    "rollup.linux-arm-gnueabihf.node"
-  ],
-  "description": "Native bindings for Rollup",
-  "author": "Lukas Taegert-Atkinson",
-  "homepage": "https://rollupjs.org/",
-  "license": "MIT",
-  "repository": "rollup/rollup",
-  "main": "./rollup.linux-arm-gnueabihf.node"
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/rollup/rollup/issues"
+	},
+	"cpu": [
+		"arm"
+	],
+	"description": "Native bindings for Rollup",
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"files": [
+		"rollup.linux-arm-gnueabihf.node"
+	],
+	"homepage": "HTTPS://GitHub.Com/rollup/rollup#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "./rollup.linux-arm-gnueabihf.node",
+	"name": "@rollup/rollup-linux-arm-gnueabihf",
+	"os": [
+		"linux"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/rollup/rollup.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"version": "0.0.1"
 }

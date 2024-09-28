@@ -1,37 +1,53 @@
 {
-  "name": "@rollup/browser",
-  "version": "4.1.4",
-  "description": "Next-generation ES module bundler browser build",
-  "main": "dist/rollup.browser.js",
-  "module": "dist/es/rollup.browser.js",
-  "types": "dist/rollup.browser.d.ts",
-  "repository": "rollup/rollup",
-  "keywords": [
-    "modules",
-    "bundler",
-    "bundling",
-    "es6",
-    "optimizer",
-    "browser"
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/rollup/rollup/issues"
-  },
-  "homepage": "https://rollupjs.org/",
-  "files": [
-    "dist/**/*.wasm",
-    "dist/**/*.js",
-    "dist/*.d.ts",
-    "dist/es/package.json",
-    "dist/rollup.browser.js.map"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/rollup.browser.d.ts",
-      "require": "./dist/rollup.browser.js",
-      "import": "./dist/es/rollup.browser.js"
-    },
-    "./dist/*": "./dist/*"
-  }
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "🖋️ Source — 👐🏻 Open —",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/rollup/rollup/issues"
+	},
+	"description": "Next-generation ES module bundler browser build",
+	"devDependencies": {
+		"@playform/build": ""
+	},
+	"exports": {
+		".": {
+			"import": "./dist/es/rollup.browser.js",
+			"require": "./dist/rollup.browser.js",
+			"types": "./dist/rollup.browser.d.ts"
+		},
+		"./dist/*": "./dist/*"
+	},
+	"files": [
+		"dist/**/*.wasm",
+		"dist/**/*.js",
+		"dist/*.d.ts",
+		"dist/es/package.json",
+		"dist/rollup.browser.js.map"
+	],
+	"homepage": "HTTPS://GitHub.Com/rollup/rollup#readme",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "dist/rollup.browser.js",
+	"module": "dist/es/rollup.browser.js",
+	"name": "@rollup/browser",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/rollup/rollup.git"
+	},
+	"scripts": {
+		"prepublishOnly": "Build 'Source/**/*.ts'"
+	},
+	"type": "module",
+	"types": "dist/rollup.browser.d.ts",
+	"version": "0.0.1"
 }
