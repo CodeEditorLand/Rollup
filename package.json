@@ -8,7 +8,7 @@
 		"rollup": "dist/bin/rollup"
 	},
 	"bugs": {
-		"url": "HTTPS://GitHub.Com/rollup/rollup/issues"
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/Rollup/issues"
 	},
 	"description": "Next-generation ES module bundler",
 	"devDependencies": {
@@ -106,7 +106,7 @@
 		"dist/bin/rollup",
 		"dist/es/package.json"
 	],
-	"homepage": "HTTPS://GitHub.Com/rollup/rollup#readme",
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/Rollup#readme",
 	"keywords": [
 		"codeeditorland",
 		"land",
@@ -151,7 +151,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+HTTPS://github.com/rollup/rollup.git"
+		"url": "git+HTTPS://github.com/CodeEditorLand/Rollup.git"
 	},
 	"scripts": {
 		"build": "npm run build:wasm && concurrently -c green,blue \"npm run build:napi -- --release\" \"npm:build:js\" && npm run build:copy-native",
