@@ -1,4 +1,8 @@
-import type { LogHandler, MergedRollupOptions, RollupLog } from '../../src/rollup/types';
+import type {
+	LogHandler,
+	MergedRollupOptions,
+	RollupLog,
+} from "../../src/rollup/types";
 
 export interface BatchWarnings {
 	add: (warning: RollupLog) => void;
@@ -13,7 +17,7 @@ export type LoadConfigFile = typeof loadConfigFile;
 export function loadConfigFile(
 	fileName: string,
 	commandOptions: any,
-	watchMode?: boolean
+	watchMode?: boolean,
 ): Promise<{
 	options: MergedRollupOptions[];
 	warnings: BatchWarnings;

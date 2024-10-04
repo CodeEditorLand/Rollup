@@ -2,19 +2,19 @@ import type {
 	LoggingFunctionWithPosition,
 	LogHandler,
 	LogLevel,
-	LogLevelOption
-} from '../rollup/types';
-import { doNothing } from './doNothing';
-import { LOGLEVEL_WARN, logLevelPriority } from './logging';
-import { logInvalidLogPosition } from './logs';
-import { normalizeLog } from './options/options';
+	LogLevelOption,
+} from "../rollup/types";
+import { doNothing } from "./doNothing";
+import { LOGLEVEL_WARN, logLevelPriority } from "./logging";
+import { logInvalidLogPosition } from "./logs";
+import { normalizeLog } from "./options/options";
 
 export function getLogHandler(
 	level: LogLevel,
 	code: string,
 	logger: LogHandler,
 	pluginName: string,
-	logLevel: LogLevelOption
+	logLevel: LogLevelOption,
 ): LoggingFunctionWithPosition {
 	if (logLevelPriority[level] < logLevelPriority[logLevel]) {
 		return doNothing;

@@ -12,8 +12,8 @@ export function getRollupUrl(snippet: string) {
 }
 
 export function addTrailingSlashIfMissed(url: string) {
-	if (!url.endsWith('/')) {
-		return url + '/';
+	if (!url.endsWith("/")) {
+		return url + "/";
 	}
 	return url;
 }

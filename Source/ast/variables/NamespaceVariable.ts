@@ -1,17 +1,29 @@
-import type { AstContext, default as Module } from '../../Module';
-import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
-import type { RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_ASSIGNED, INTERACTION_CALLED } from '../NodeInteractions';
-import type Identifier from '../nodes/Identifier';
-import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
-import { deoptimizeInteraction, UnknownValue } from '../nodes/shared/Expression';
-import type ChildScope from '../scopes/ChildScope';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { SymbolToStringTag } from '../utils/PathTracker';
-import Variable from './Variable';
+import type { AstContext, default as Module } from "../../Module";
+import {
+	getToStringTagValue,
+	MERGE_NAMESPACES_VARIABLE,
+} from "../../utils/interopHelpers";
+import type { RenderOptions } from "../../utils/renderHelpers";
+import { getSystemExportStatement } from "../../utils/systemJsRendering";
+import type { HasEffectsContext } from "../ExecutionContext";
+import {
+	INTERACTION_ASSIGNED,
+	INTERACTION_CALLED,
+	type NodeInteraction,
+} from "../NodeInteractions";
+import type Identifier from "../nodes/Identifier";
+import {
+	deoptimizeInteraction,
+	UnknownValue,
+	type LiteralValueOrUnknown,
+} from "../nodes/shared/Expression";
+import type ChildScope from "../scopes/ChildScope";
+import {
+	SymbolToStringTag,
+	type ObjectPath,
+	type PathTracker,
+} from "../utils/PathTracker";
+import Variable from "./Variable";
 
 export default class NamespaceVariable extends Variable {
 	readonly context: AstContext;
@@ -37,15 +49,20 @@ export default class NamespaceVariable extends Variable {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	) {
-		if (path.length > 1 || (path.length === 1 && interaction.type === INTERACTION_CALLED)) {
+		if (
+			path.length > 1 ||
+			(path.length === 1 && interaction.type === INTERACTION_CALLED)
+		) {
 			const key = path[0];
-			if (typeof key === 'string') {
-				this.getMemberVariables()[key]?.deoptimizeArgumentsOnInteractionAtPath(
+			if (typeof key === "string") {
+				this.getMemberVariables()[
+					key
+				]?.deoptimizeArgumentsOnInteractionAtPath(
 					interaction,
 					path.slice(1),
-					recursionTracker
+					recursionTracker,
 				);
 			} else {
 				deoptimizeInteraction(interaction);
@@ -56,7 +73,7 @@ export default class NamespaceVariable extends Variable {
 	deoptimizePath(path: ObjectPath) {
 		if (path.length > 1) {
 			const key = path[0];
-			if (typeof key === 'string') {
+			if (typeof key === "string") {
 				this.getMemberVariables()[key]?.deoptimizePath(path.slice(1));
 			}
 		}
@@ -64,7 +81,7 @@ export default class NamespaceVariable extends Variable {
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path[0] === SymbolToStringTag) {
-			return 'Module';
+			return "Module";
 		}
 		return UnknownValue;
 	}
@@ -74,11 +91,18 @@ export default class NamespaceVariable extends Variable {
 			return this.memberVariables;
 		}
 
-		const memberVariables: { [name: string]: Variable } = Object.create(null);
-		const sortedExports = [...this.context.getExports(), ...this.context.getReexports()].sort();
+		const memberVariables: { [name: string]: Variable } =
+			Object.create(null);
+		const sortedExports = [
+			...this.context.getExports(),
+			...this.context.getReexports(),
+		].sort();
 
 		for (const name of sortedExports) {
-			if (name[0] !== '*' && name !== this.module.info.syntheticNamedExports) {
+			if (
+				name[0] !== "*" &&
+				name !== this.module.info.syntheticNamedExports
+			) {
 				const exportedVariable = this.context.traceExport(name);
 				if (exportedVariable) {
 					memberVariables[name] = exportedVariable;
@@ -91,7 +115,7 @@ export default class NamespaceVariable extends Variable {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		const { type } = interaction;
 		if (path.length === 0) {
@@ -102,13 +126,17 @@ export default class NamespaceVariable extends Variable {
 			return type === INTERACTION_ASSIGNED;
 		}
 		const key = path[0];
-		if (typeof key !== 'string') {
+		if (typeof key !== "string") {
 			return true;
 		}
 		const memberVariable = this.getMemberVariables()[key];
 		return (
 			!memberVariable ||
-			memberVariable.hasEffectsOnInteractionAtPath(path.slice(1), interaction, context)
+			memberVariable.hasEffectsOnInteractionAtPath(
+				path.slice(1),
+				interaction,
+				context,
+			)
 		);
 	}
 
@@ -119,7 +147,10 @@ export default class NamespaceVariable extends Variable {
 
 	prepare(accessedGlobalsByScope: Map<ChildScope, Set<string>>): void {
 		if (this.mergedNamespaces.length > 0) {
-			this.module.scope.addAccessedGlobals([MERGE_NAMESPACES_VARIABLE], accessedGlobalsByScope);
+			this.module.scope.addAccessedGlobals(
+				[MERGE_NAMESPACES_VARIABLE],
+				accessedGlobalsByScope,
+			);
 		}
 	}
 
@@ -130,16 +161,22 @@ export default class NamespaceVariable extends Variable {
 			freeze,
 			indent: t,
 			symbols,
-			snippets: { _, cnst, getObject, getPropertyAccess, n, s }
+			snippets: { _, cnst, getObject, getPropertyAccess, n, s },
 		} = options;
 		const memberVariables = this.getMemberVariables();
-		const members: [key: string | null, value: string][] = Object.entries(memberVariables)
+		const members: [key: string | null, value: string][] = Object.entries(
+			memberVariables,
+		)
 			.filter(([_, variable]) => variable.included)
 			.map(([name, variable]) => {
-				if (this.referencedEarly || variable.isReassigned || variable === this) {
+				if (
+					this.referencedEarly ||
+					variable.isReassigned ||
+					variable === this
+				) {
 					return [
 						null,
-						`get ${name}${_}()${_}{${_}return ${variable.getName(getPropertyAccess)}${s}${_}}`
+						`get ${name}${_}()${_}{${_}return ${variable.getName(getPropertyAccess)}${s}${_}}`,
 					];
 				}
 
@@ -147,19 +184,19 @@ export default class NamespaceVariable extends Variable {
 			});
 		members.unshift([null, `__proto__:${_}null`]);
 
-		let output = getObject(members, { lineBreakIndent: { base: '', t } });
+		let output = getObject(members, { lineBreakIndent: { base: "", t } });
 		if (this.mergedNamespaces.length > 0) {
-			const assignmentArguments = this.mergedNamespaces.map(variable =>
-				variable.getName(getPropertyAccess)
+			const assignmentArguments = this.mergedNamespaces.map((variable) =>
+				variable.getName(getPropertyAccess),
 			);
 			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArguments.join(
-				`,${_}`
+				`,${_}`,
 			)}])`;
 		} else {
 			// The helper to merge namespaces will also take care of freezing and toStringTag
 			if (symbols) {
 				output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}${getToStringTagValue(
-					getObject
+					getObject,
 				)})`;
 			}
 			if (freeze) {
@@ -170,7 +207,7 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName(getPropertyAccess);
 		output = `${cnst} ${name}${_}=${_}${output};`;
 
-		if (format === 'system' && exportNamesByVariable.has(this)) {
+		if (format === "system" && exportNamesByVariable.has(this)) {
 			output += `${n}${getSystemExportStatement([this], options)};`;
 		}
 

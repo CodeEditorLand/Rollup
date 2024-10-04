@@ -1,7 +1,11 @@
-import type { AwaitedEventListener, AwaitingEventEmitter } from '../rollup/types';
+import type {
+	AwaitedEventListener,
+	AwaitingEventEmitter,
+} from "../rollup/types";
 
-export class WatchEmitter<T extends { [event: string]: (...parameters: any) => any }>
-	implements AwaitingEventEmitter<T>
+export class WatchEmitter<
+	T extends { [event: string]: (...parameters: any) => any },
+> implements AwaitingEventEmitter<T>
 {
 	private currentHandlers: {
 		[K in keyof T]?: AwaitedEventListener<T, K>[];
@@ -13,15 +17,22 @@ export class WatchEmitter<T extends { [event: string]: (...parameters: any) => a
 	// Will be overwritten by Rollup
 	async close(): Promise<void> {}
 
-	emit<K extends keyof T>(event: K, ...parameters: Parameters<T[K]>): Promise<unknown> {
+	emit<K extends keyof T>(
+		event: K,
+		...parameters: Parameters<T[K]>
+	): Promise<unknown> {
 		return Promise.all(
-			[...this.getCurrentHandlers(event), ...this.getPersistentHandlers(event)].map(handler =>
-				handler(...parameters)
-			)
+			[
+				...this.getCurrentHandlers(event),
+				...this.getPersistentHandlers(event),
+			].map((handler) => handler(...parameters)),
 		);
 	}
 
-	off<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+	off<K extends keyof T>(
+		event: K,
+		listener: AwaitedEventListener<T, K>,
+	): this {
 		const listeners = this.persistentHandlers[event];
 		if (listeners) {
 			// A hack stolen from "mitt": ">>> 0" does not change numbers >= 0, but -1
@@ -32,18 +43,29 @@ export class WatchEmitter<T extends { [event: string]: (...parameters: any) => a
 		return this;
 	}
 
-	on<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+	on<K extends keyof T>(
+		event: K,
+		listener: AwaitedEventListener<T, K>,
+	): this {
 		this.getPersistentHandlers(event).push(listener);
 		return this;
 	}
 
-	onCurrentRun<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
+	onCurrentRun<K extends keyof T>(
+		event: K,
+		listener: AwaitedEventListener<T, K>,
+	): this {
 		this.getCurrentHandlers(event).push(listener);
 		return this;
 	}
 
-	once<K extends keyof T>(event: K, listener: AwaitedEventListener<T, K>): this {
-		const selfRemovingListener: AwaitedEventListener<T, K> = (...parameters) => {
+	once<K extends keyof T>(
+		event: K,
+		listener: AwaitedEventListener<T, K>,
+	): this {
+		const selfRemovingListener: AwaitedEventListener<T, K> = (
+			...parameters
+		) => {
 			this.off(event, selfRemovingListener);
 			return listener(...parameters);
 		};
@@ -62,11 +84,20 @@ export class WatchEmitter<T extends { [event: string]: (...parameters: any) => a
 		return this;
 	}
 
-	private getCurrentHandlers<K extends keyof T>(event: K): AwaitedEventListener<T, K>[] {
-		return this.currentHandlers[event] || (this.currentHandlers[event] = []);
+	private getCurrentHandlers<K extends keyof T>(
+		event: K,
+	): AwaitedEventListener<T, K>[] {
+		return (
+			this.currentHandlers[event] || (this.currentHandlers[event] = [])
+		);
 	}
 
-	private getPersistentHandlers<K extends keyof T>(event: K): AwaitedEventListener<T, K>[] {
-		return this.persistentHandlers[event] || (this.persistentHandlers[event] = []);
+	private getPersistentHandlers<K extends keyof T>(
+		event: K,
+	): AwaitedEventListener<T, K>[] {
+		return (
+			this.persistentHandlers[event] ||
+			(this.persistentHandlers[event] = [])
+		);
 	}
 }

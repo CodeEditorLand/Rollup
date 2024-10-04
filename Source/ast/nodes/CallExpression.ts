@@ -1,23 +1,38 @@
-import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
-import { LOGLEVEL_WARN } from '../../utils/logging';
-import { logCannotCallNamespace, logEval } from '../../utils/logs';
-import { renderCallArguments } from '../../utils/renderCallArguments';
-import { type NodeRenderOptions, type RenderOptions } from '../../utils/renderHelpers';
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { INTERACTION_CALLED } from '../NodeInteractions';
-import { EMPTY_PATH, type PathTracker, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
-import Identifier from './Identifier';
-import MemberExpression from './MemberExpression';
-import type * as NodeType from './NodeType';
-import type SpreadElement from './SpreadElement';
-import type Super from './Super';
-import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import CallExpressionBase from './shared/CallExpressionBase';
-import { type ExpressionEntity, UNKNOWN_RETURN_EXPRESSION } from './shared/Expression';
-import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
-import { INCLUDE_PARAMETERS } from './shared/Node';
+import type MagicString from "magic-string";
+
+import { BLANK } from "../../utils/blank";
+import { LOGLEVEL_WARN } from "../../utils/logging";
+import { logCannotCallNamespace, logEval } from "../../utils/logs";
+import { renderCallArguments } from "../../utils/renderCallArguments";
+import {
+	type NodeRenderOptions,
+	type RenderOptions,
+} from "../../utils/renderHelpers";
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import { INTERACTION_CALLED } from "../NodeInteractions";
+import {
+	EMPTY_PATH,
+	SHARED_RECURSION_TRACKER,
+	type PathTracker,
+} from "../utils/PathTracker";
+import Identifier from "./Identifier";
+import MemberExpression from "./MemberExpression";
+import type * as NodeType from "./NodeType";
+import { Flag, isFlagSet, setFlag } from "./shared/BitFlags";
+import CallExpressionBase from "./shared/CallExpressionBase";
+import {
+	UNKNOWN_RETURN_EXPRESSION,
+	type ExpressionEntity,
+} from "./shared/Expression";
+import {
+	INCLUDE_PARAMETERS,
+	type ChainElement,
+	type ExpressionNode,
+	type IncludeChildren,
+} from "./shared/Node";
+import type SpreadElement from "./SpreadElement";
+import type Super from "./Super";
 
 export default class CallExpression
 	extends CallExpressionBase
@@ -40,11 +55,19 @@ export default class CallExpression
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.scope.context.log(LOGLEVEL_WARN, logCannotCallNamespace(this.callee.name), this.start);
+				this.scope.context.log(
+					LOGLEVEL_WARN,
+					logCannotCallNamespace(this.callee.name),
+					this.start,
+				);
 			}
 
-			if (this.callee.name === 'eval') {
-				this.scope.context.log(LOGLEVEL_WARN, logEval(this.scope.context.module.id), this.start);
+			if (this.callee.name === "eval") {
+				this.scope.context.log(
+					LOGLEVEL_WARN,
+					logEval(this.scope.context.module.id),
+					this.start,
+				);
 			}
 		}
 		this.interaction = {
@@ -52,10 +75,10 @@ export default class CallExpression
 				this.callee instanceof MemberExpression && !this.callee.variable
 					? this.callee.object
 					: null,
-				...this.arguments
+				...this.arguments,
 			],
 			type: INTERACTION_CALLED,
-			withNew: false
+			withNew: false,
 		};
 	}
 
@@ -69,14 +92,21 @@ export default class CallExpression
 			}
 			return (
 				this.callee.hasEffects(context) ||
-				this.callee.hasEffectsOnInteractionAtPath(EMPTY_PATH, this.interaction, context)
+				this.callee.hasEffectsOnInteractionAtPath(
+					EMPTY_PATH,
+					this.interaction,
+					context,
+				)
 			);
 		} finally {
 			if (!this.deoptimized) this.applyDeoptimizations();
 		}
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
@@ -98,18 +128,22 @@ export default class CallExpression
 		return (
 			(this.callee as ExpressionNode).isSkippedAsOptional?.(origin) ||
 			(this.optional &&
-				this.callee.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, origin) == null)
+				this.callee.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					origin,
+				) == null)
 		);
 	}
 
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
+		{ renderedSurroundingElement }: NodeRenderOptions = BLANK,
 	): void {
 		this.callee.render(code, options, {
 			isCalleeOfRenderedParent: true,
-			renderedSurroundingElement
+			renderedSurroundingElement,
 		});
 		renderCallArguments(code, options, this);
 	}
@@ -119,22 +153,23 @@ export default class CallExpression
 		this.callee.deoptimizeArgumentsOnInteractionAtPath(
 			this.interaction,
 			EMPTY_PATH,
-			SHARED_RECURSION_TRACKER
+			SHARED_RECURSION_TRACKER,
 		);
 		this.scope.context.requestTreeshakingPass();
 	}
 
 	protected getReturnExpression(
-		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
+		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER,
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.returnExpression === null) {
 			this.returnExpression = UNKNOWN_RETURN_EXPRESSION;
-			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
-				EMPTY_PATH,
-				this.interaction,
-				recursionTracker,
-				this
-			));
+			return (this.returnExpression =
+				this.callee.getReturnExpressionWhenCalledAtPath(
+					EMPTY_PATH,
+					this.interaction,
+					recursionTracker,
+					this,
+				));
 		}
 		return this.returnExpression;
 	}

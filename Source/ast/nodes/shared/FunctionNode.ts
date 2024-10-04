@@ -1,17 +1,21 @@
-import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import type { NodeInteraction } from '../../NodeInteractions';
-import { INTERACTION_CALLED } from '../../NodeInteractions';
-import FunctionScope from '../../scopes/FunctionScope';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import type BlockStatement from '../BlockStatement';
-import Identifier, { type IdentifierWithVariable } from '../Identifier';
-import type { ExpressionEntity } from './Expression';
-import { UNKNOWN_EXPRESSION } from './Expression';
-import FunctionBase from './FunctionBase';
-import { type IncludeChildren } from './Node';
-import { ObjectEntity } from './ObjectEntity';
-import { OBJECT_PROTOTYPE } from './ObjectPrototype';
-import type { PatternNode } from './Pattern';
+import {
+	type HasEffectsContext,
+	type InclusionContext,
+} from "../../ExecutionContext";
+import {
+	INTERACTION_CALLED,
+	type NodeInteraction,
+} from "../../NodeInteractions";
+import FunctionScope from "../../scopes/FunctionScope";
+import type { ObjectPath, PathTracker } from "../../utils/PathTracker";
+import type BlockStatement from "../BlockStatement";
+import Identifier, { type IdentifierWithVariable } from "../Identifier";
+import { UNKNOWN_EXPRESSION, type ExpressionEntity } from "./Expression";
+import FunctionBase from "./FunctionBase";
+import { type IncludeChildren } from "./Node";
+import { ObjectEntity } from "./ObjectEntity";
+import { OBJECT_PROTOTYPE } from "./ObjectPrototype";
+import type { PatternNode } from "./Pattern";
 
 export default class FunctionNode extends FunctionBase {
 	declare body: BlockStatement;
@@ -24,21 +28,36 @@ export default class FunctionNode extends FunctionBase {
 
 	createScope(parentScope: FunctionScope): void {
 		this.scope = new FunctionScope(parentScope, this.scope.context);
-		this.constructedEntity = new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE);
+		this.constructedEntity = new ObjectEntity(
+			Object.create(null),
+			OBJECT_PROTOTYPE,
+		);
 		// This makes sure that all deoptimizations of "this" are applied to the
 		// constructed entity.
-		this.scope.thisVariable.addEntityToBeDeoptimized(this.constructedEntity);
+		this.scope.thisVariable.addEntityToBeDeoptimized(
+			this.constructedEntity,
+		);
 	}
 
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	): void {
-		super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
-		if (interaction.type === INTERACTION_CALLED && path.length === 0 && interaction.args[0]) {
+		super.deoptimizeArgumentsOnInteractionAtPath(
+			interaction,
+			path,
+			recursionTracker,
+		);
+		if (
+			interaction.type === INTERACTION_CALLED &&
+			path.length === 0 &&
+			interaction.args[0]
+		) {
 			// args[0] is the "this" argument
-			this.scope.thisVariable.addEntityToBeDeoptimized(interaction.args[0]);
+			this.scope.thisVariable.addEntityToBeDeoptimized(
+				interaction.args[0],
+			);
 		}
 	}
 
@@ -55,19 +74,24 @@ export default class FunctionNode extends FunctionBase {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
-		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) return true;
+		if (super.hasEffectsOnInteractionAtPath(path, interaction, context))
+			return true;
 
 		if (this.annotationNoSideEffects) {
 			return false;
 		}
 
 		if (interaction.type === INTERACTION_CALLED) {
-			const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
+			const thisInit = context.replacedVariableInits.get(
+				this.scope.thisVariable,
+			);
 			context.replacedVariableInits.set(
 				this.scope.thisVariable,
-				interaction.withNew ? this.constructedEntity : UNKNOWN_EXPRESSION
+				interaction.withNew
+					? this.constructedEntity
+					: UNKNOWN_EXPRESSION,
 			);
 			const { brokenFlow, ignore, replacedVariableInits } = context;
 			context.ignore = {
@@ -75,7 +99,7 @@ export default class FunctionNode extends FunctionBase {
 				continues: false,
 				labels: new Set(),
 				returnYield: true,
-				this: interaction.withNew
+				this: interaction.withNew,
 			};
 			if (this.body.hasEffects(context)) return true;
 			context.brokenFlow = brokenFlow;
@@ -89,7 +113,10 @@ export default class FunctionNode extends FunctionBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		super.include(context, includeChildrenRecursively);
 		this.id?.include();
 		const hasArguments = this.scope.argumentsVariable.included;
@@ -102,7 +129,7 @@ export default class FunctionNode extends FunctionBase {
 
 	initialise(): void {
 		super.initialise();
-		this.id?.declare('function', this);
+		this.id?.declare("function", this);
 	}
 
 	protected addArgumentToBeDeoptimized(argument: ExpressionEntity) {
@@ -116,12 +143,12 @@ export default class FunctionNode extends FunctionBase {
 		return (this.objectEntity = new ObjectEntity(
 			[
 				{
-					key: 'prototype',
-					kind: 'init',
-					property: new ObjectEntity([], OBJECT_PROTOTYPE)
-				}
+					key: "prototype",
+					kind: "init",
+					property: new ObjectEntity([], OBJECT_PROTOTYPE),
+				},
 			],
-			OBJECT_PROTOTYPE
+			OBJECT_PROTOTYPE,
 		));
 	}
 }

@@ -1,20 +1,25 @@
-import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
+import type MagicString from "magic-string";
+
+import { BLANK } from "../../utils/blank";
 import {
 	getCommaSeparatedNodesWithBoundaries,
-	type NodeRenderOptions,
 	removeLineBreaks,
-	type RenderOptions
-} from '../../utils/renderHelpers';
-import { treeshakeNode } from '../../utils/treeshakeNode';
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import ExpressionStatement from './ExpressionStatement';
-import type * as NodeType from './NodeType';
-import type { LiteralValueOrUnknown } from './shared/Expression';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+	type NodeRenderOptions,
+	type RenderOptions,
+} from "../../utils/renderHelpers";
+import { treeshakeNode } from "../../utils/treeshakeNode";
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import type { NodeInteraction } from "../NodeInteractions";
+import type { ObjectPath, PathTracker } from "../utils/PathTracker";
+import ExpressionStatement from "./ExpressionStatement";
+import type * as NodeType from "./NodeType";
+import type { LiteralValueOrUnknown } from "./shared/Expression";
+import {
+	NodeBase,
+	type ExpressionNode,
+	type IncludeChildren,
+} from "./shared/Node";
 
 export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];
@@ -23,12 +28,14 @@ export default class SequenceExpression extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	): void {
-		this.expressions[this.expressions.length - 1].deoptimizeArgumentsOnInteractionAtPath(
+		this.expressions[
+			this.expressions.length - 1
+		].deoptimizeArgumentsOnInteractionAtPath(
 			interaction,
 			path,
-			recursionTracker
+			recursionTracker,
 		);
 	}
 
@@ -39,13 +46,11 @@ export default class SequenceExpression extends NodeBase {
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): LiteralValueOrUnknown {
-		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
-			path,
-			recursionTracker,
-			origin
-		);
+		return this.expressions[
+			this.expressions.length - 1
+		].getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -58,22 +63,24 @@ export default class SequenceExpression extends NodeBase {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
-		return this.expressions[this.expressions.length - 1].hasEffectsOnInteractionAtPath(
-			path,
-			interaction,
-			context
-		);
+		return this.expressions[
+			this.expressions.length - 1
+		].hasEffectsOnInteractionAtPath(path, interaction, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		const lastExpression = this.expressions[this.expressions.length - 1];
 		for (const expression of this.expressions) {
 			if (
 				includeChildrenRecursively ||
-				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
+				(expression === lastExpression &&
+					!(this.parent instanceof ExpressionStatement)) ||
 				expression.shouldBeIncluded(context)
 			)
 				expression.include(context, includeChildrenRecursively);
@@ -87,16 +94,25 @@ export default class SequenceExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
+		{
+			renderedParentType,
+			isCalleeOfRenderedParent,
+			preventASI,
+		}: NodeRenderOptions = BLANK,
 	): void {
 		let includedNodes = 0;
 		let lastSeparatorPos: number | null = null;
 		const lastNode = this.expressions[this.expressions.length - 1];
-		for (const { node, separator, start, end } of getCommaSeparatedNodesWithBoundaries(
+		for (const {
+			node,
+			separator,
+			start,
+			end,
+		} of getCommaSeparatedNodesWithBoundaries(
 			this.expressions,
 			code,
 			this.start,
-			this.end
+			this.end,
 		)) {
 			if (!node.included) {
 				treeshakeNode(node, code, start, end);
@@ -110,9 +126,10 @@ export default class SequenceExpression extends NodeBase {
 			if (includedNodes === 1) {
 				const parentType = renderedParentType || this.parent.type;
 				node.render(code, options, {
-					isCalleeOfRenderedParent: isCalleeOfRenderedParent && node === lastNode,
+					isCalleeOfRenderedParent:
+						isCalleeOfRenderedParent && node === lastNode,
 					renderedParentType: parentType,
-					renderedSurroundingElement: parentType
+					renderedSurroundingElement: parentType,
 				});
 			} else {
 				node.render(code, options);

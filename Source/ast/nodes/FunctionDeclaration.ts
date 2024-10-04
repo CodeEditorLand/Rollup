@@ -1,8 +1,8 @@
-import type ChildScope from '../scopes/ChildScope';
-import Identifier, { type IdentifierWithVariable } from './Identifier';
-import type * as NodeType from './NodeType';
-import FunctionNode from './shared/FunctionNode';
-import type { GenericEsTreeNode } from './shared/Node';
+import type ChildScope from "../scopes/ChildScope";
+import Identifier, { type IdentifierWithVariable } from "./Identifier";
+import type * as NodeType from "./NodeType";
+import FunctionNode from "./shared/FunctionNode";
+import type { GenericEsTreeNode } from "./shared/Node";
 
 export default class FunctionDeclaration extends FunctionNode {
 	declare type: NodeType.tFunctionDeclaration;
@@ -19,7 +19,7 @@ export default class FunctionDeclaration extends FunctionNode {
 			this.id = new Identifier(
 				esTreeNode.id,
 				this,
-				this.scope.parent as ChildScope
+				this.scope.parent as ChildScope,
 			) as IdentifierWithVariable;
 		}
 		super.parseNode(esTreeNode);

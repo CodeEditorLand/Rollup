@@ -1,37 +1,41 @@
-import { UnknownInteger } from '../../utils/PathTracker';
-import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_NUMBER } from '../../values';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { UnknownInteger } from "../../utils/PathTracker";
+import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_NUMBER } from "../../values";
+import { UNKNOWN_EXPRESSION, type ExpressionEntity } from "./Expression";
 import {
 	Method,
 	METHOD_RETURNS_BOOLEAN,
 	METHOD_RETURNS_NUMBER,
 	METHOD_RETURNS_STRING,
-	METHOD_RETURNS_UNKNOWN
-} from './MethodTypes';
-import { ObjectEntity, type ObjectProperty, type PropertyMap } from './ObjectEntity';
-import { OBJECT_PROTOTYPE } from './ObjectPrototype';
+	METHOD_RETURNS_UNKNOWN,
+} from "./MethodTypes";
+import {
+	ObjectEntity,
+	type ObjectProperty,
+	type PropertyMap,
+} from "./ObjectEntity";
+import { OBJECT_PROTOTYPE } from "./ObjectPrototype";
 
 const NEW_ARRAY_PROPERTIES: ObjectProperty[] = [
-	{ key: UnknownInteger, kind: 'init', property: UNKNOWN_EXPRESSION },
-	{ key: 'length', kind: 'init', property: UNKNOWN_LITERAL_NUMBER }
+	{ key: UnknownInteger, kind: "init", property: UNKNOWN_EXPRESSION },
+	{ key: "length", kind: "init", property: UNKNOWN_LITERAL_NUMBER },
 ];
 
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_BOOLEAN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: 'deopt-only',
+		mutatesSelfAsArray: "deopt-only",
 		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
-	})
+		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN,
+	}),
 ];
 
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: 'deopt-only',
+		mutatesSelfAsArray: "deopt-only",
 		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
-	})
+		returnsPrimitive: UNKNOWN_LITERAL_NUMBER,
+	}),
 ];
 
 const METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
@@ -39,26 +43,26 @@ const METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 		callsArgs: null,
 		mutatesSelfAsArray: true,
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
-		returnsPrimitive: null
-	})
+		returnsPrimitive: null,
+	}),
 ];
 
 const METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
-		mutatesSelfAsArray: 'deopt-only',
+		mutatesSelfAsArray: "deopt-only",
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
-		returnsPrimitive: null
-	})
+		returnsPrimitive: null,
+	}),
 ];
 
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: 'deopt-only',
+		mutatesSelfAsArray: "deopt-only",
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
-		returnsPrimitive: null
-	})
+		returnsPrimitive: null,
+	}),
 ];
 
 const METHOD_MUTATES_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
@@ -66,8 +70,8 @@ const METHOD_MUTATES_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
 		callsArgs: null,
 		mutatesSelfAsArray: true,
 		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
-	})
+		returnsPrimitive: UNKNOWN_LITERAL_NUMBER,
+	}),
 ];
 
 const METHOD_MUTATES_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
@@ -75,44 +79,44 @@ const METHOD_MUTATES_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 		callsArgs: null,
 		mutatesSelfAsArray: true,
 		returns: null,
-		returnsPrimitive: UNKNOWN_EXPRESSION
-	})
+		returnsPrimitive: UNKNOWN_EXPRESSION,
+	}),
 ];
 
 const METHOD_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
-		mutatesSelfAsArray: 'deopt-only',
+		mutatesSelfAsArray: "deopt-only",
 		returns: null,
-		returnsPrimitive: UNKNOWN_EXPRESSION
-	})
+		returnsPrimitive: UNKNOWN_EXPRESSION,
+	}),
 ];
 
 const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: 'deopt-only',
+		mutatesSelfAsArray: "deopt-only",
 		returns: null,
-		returnsPrimitive: UNKNOWN_EXPRESSION
-	})
+		returnsPrimitive: UNKNOWN_EXPRESSION,
+	}),
 ];
 
 const METHOD_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 	new Method({
 		callsArgs: null,
 		mutatesSelfAsArray: true,
-		returns: 'self',
-		returnsPrimitive: null
-	})
+		returns: "self",
+		returnsPrimitive: null,
+	}),
 ];
 
 const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
 		mutatesSelfAsArray: true,
-		returns: 'self',
-		returnsPrimitive: null
-	})
+		returns: "self",
+		returnsPrimitive: null,
+	}),
 ];
 
 export const ARRAY_PROTOTYPE = new ObjectEntity(
@@ -152,8 +156,8 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		toLocaleString: METHOD_RETURNS_STRING,
 		toString: METHOD_RETURNS_STRING,
 		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
-		values: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN
+		values: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN,
 	} as unknown as PropertyMap,
 	OBJECT_PROTOTYPE,
-	true
+	true,
 );

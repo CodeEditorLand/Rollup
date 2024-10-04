@@ -1,19 +1,28 @@
-import { execSync } from 'node:child_process';
-import type { RollupWatchHooks } from '../../src/rollup/types';
-import { bold, cyan } from '../../src/utils/colors';
-import { stderr } from '../logging';
+import { execSync } from "node:child_process";
+
+import type { RollupWatchHooks } from "../../src/rollup/types";
+import { bold, cyan } from "../../src/utils/colors";
+import { stderr } from "../logging";
 
 function extractWatchHooks(
-	command: Record<string, any>
+	command: Record<string, any>,
 ): Partial<Record<RollupWatchHooks, string>> {
 	if (!Array.isArray(command.watch)) return {};
 
 	return command.watch
-		.filter(value => typeof value === 'object')
-		.reduce((accumulator, keyValueOption) => ({ ...accumulator, ...keyValueOption }), {});
+		.filter((value) => typeof value === "object")
+		.reduce(
+			(accumulator, keyValueOption) => ({
+				...accumulator,
+				...keyValueOption,
+			}),
+			{},
+		);
 }
 
-export function createWatchHooks(command: Record<string, any>): (hook: RollupWatchHooks) => void {
+export function createWatchHooks(
+	command: Record<string, any>,
+): (hook: RollupWatchHooks) => void {
 	const watchHooks = extractWatchHooks(command);
 
 	return function (hook: RollupWatchHooks): void {
@@ -27,7 +36,7 @@ export function createWatchHooks(command: Record<string, any>): (hook: RollupWat
 			try {
 				// !! important - use stderr for all writes from execSync
 				const stdio = [process.stdin, process.stderr, process.stderr];
-				execSync(cmd, { stdio: command.silent ? 'ignore' : stdio });
+				execSync(cmd, { stdio: command.silent ? "ignore" : stdio });
 			} catch (error) {
 				stderr((error as Error).message);
 			}

@@ -1,9 +1,13 @@
-import type { ModuleLoaderResolveId } from '../ModuleLoader';
-import type { CustomPluginOptions, Plugin, ResolveIdResult } from '../rollup/types';
-import type { PluginDriver } from './PluginDriver';
-import { lstat, readdir, realpath } from './fs';
-import { basename, dirname, isAbsolute, resolve } from './path';
-import { resolveIdViaPlugins } from './resolveIdViaPlugins';
+import type { ModuleLoaderResolveId } from "../ModuleLoader";
+import type {
+	CustomPluginOptions,
+	Plugin,
+	ResolveIdResult,
+} from "../rollup/types";
+import { lstat, readdir, realpath } from "./fs";
+import { basename, dirname, isAbsolute, resolve } from "./path";
+import type { PluginDriver } from "./PluginDriver";
+import { resolveIdViaPlugins } from "./resolveIdViaPlugins";
 
 export async function resolveId(
 	source: string,
@@ -11,10 +15,16 @@ export async function resolveId(
 	preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
 	moduleLoaderResolveId: ModuleLoaderResolveId,
-	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
+	skip:
+		| readonly {
+				importer: string | undefined;
+				plugin: Plugin;
+				source: string;
+		  }[]
+		| null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	attributes: Record<string, string>
+	attributes: Record<string, string>,
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -24,21 +34,24 @@ export async function resolveId(
 		skip,
 		customOptions,
 		isEntry,
-		attributes
+		attributes,
 	);
 
 	if (pluginResult != null) {
 		const [resolveIdResult, plugin] = pluginResult;
-		if (typeof resolveIdResult === 'object' && !resolveIdResult.resolvedBy) {
+		if (
+			typeof resolveIdResult === "object" &&
+			!resolveIdResult.resolvedBy
+		) {
 			return {
 				...resolveIdResult,
-				resolvedBy: plugin.name
+				resolvedBy: plugin.name,
 			};
 		}
-		if (typeof resolveIdResult === 'string') {
+		if (typeof resolveIdResult === "string") {
 			return {
 				id: resolveIdResult,
-				resolvedBy: plugin.name
+				resolvedBy: plugin.name,
 			};
 		}
 		return resolveIdResult;
@@ -46,7 +59,8 @@ export async function resolveId(
 
 	// external modules (non-entry modules that start with neither '.' or '/')
 	// are skipped at this stage.
-	if (importer !== undefined && !isAbsolute(source) && source[0] !== '.') return null;
+	if (importer !== undefined && !isAbsolute(source) && source[0] !== ".")
+		return null;
 
 	// `resolve` processes paths from right to left, prepending them until an
 	// absolute path is created. Absolute importees therefore shortcircuit the
@@ -54,22 +68,25 @@ export async function resolveId(
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
 		importer ? resolve(dirname(importer), source) : resolve(source),
-		preserveSymlinks
+		preserveSymlinks,
 	);
 }
 
 async function addJsExtensionIfNecessary(
 	file: string,
-	preserveSymlinks: boolean
+	preserveSymlinks: boolean,
 ): Promise<string | undefined> {
 	return (
 		(await findFile(file, preserveSymlinks)) ??
-		(await findFile(file + '.mjs', preserveSymlinks)) ??
-		(await findFile(file + '.js', preserveSymlinks))
+		(await findFile(file + ".mjs", preserveSymlinks)) ??
+		(await findFile(file + ".js", preserveSymlinks))
 	);
 }
 
-async function findFile(file: string, preserveSymlinks: boolean): Promise<string | undefined> {
+async function findFile(
+	file: string,
+	preserveSymlinks: boolean,
+): Promise<string | undefined> {
 	try {
 		const stats = await lstat(file);
 		if (!preserveSymlinks && stats.isSymbolicLink())

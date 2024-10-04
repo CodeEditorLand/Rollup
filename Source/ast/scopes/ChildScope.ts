@@ -1,10 +1,10 @@
-import type { AstContext } from '../../Module';
-import type { InternalModuleFormat } from '../../rollup/types';
-import { getSafeName } from '../../utils/safeName';
-import type ImportExpression from '../nodes/ImportExpression';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
-import type Variable from '../variables/Variable';
-import Scope from './Scope';
+import type { AstContext } from "../../Module";
+import type { InternalModuleFormat } from "../../rollup/types";
+import { getSafeName } from "../../utils/safeName";
+import type ImportExpression from "../nodes/ImportExpression";
+import type { ExpressionEntity } from "../nodes/shared/Expression";
+import type Variable from "../variables/Variable";
+import Scope from "./Scope";
 
 export default class ChildScope extends Scope {
 	readonly accessedOutsideVariables = new Map<string, Variable>();
@@ -20,9 +20,10 @@ export default class ChildScope extends Scope {
 	}
 
 	addAccessedDynamicImport(importExpression: ImportExpression): void {
-		(this.accessedDynamicImports || (this.accessedDynamicImports = new Set())).add(
-			importExpression
-		);
+		(
+			this.accessedDynamicImports ||
+			(this.accessedDynamicImports = new Set())
+		).add(importExpression);
 		if (this.parent instanceof ChildScope) {
 			this.parent.addAccessedDynamicImport(importExpression);
 		}
@@ -30,7 +31,7 @@ export default class ChildScope extends Scope {
 
 	addAccessedGlobals(
 		globals: readonly string[],
-		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 	): void {
 		const accessedGlobals = accessedGlobalsByScope.get(this) || new Set();
 		for (const name of globals) {
@@ -48,20 +49,24 @@ export default class ChildScope extends Scope {
 	}
 
 	addReturnExpression(expression: ExpressionEntity): void {
-		this.parent instanceof ChildScope && this.parent.addReturnExpression(expression);
+		this.parent instanceof ChildScope &&
+			this.parent.addReturnExpression(expression);
 	}
 
 	addUsedOutsideNames(
 		usedNames: Set<string>,
 		format: InternalModuleFormat,
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
-		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>,
 	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
 				usedNames.add(variable.getBaseVariableName());
-				if (format === 'system' && exportNamesByVariable.has(variable)) {
-					usedNames.add('exports');
+				if (
+					format === "system" &&
+					exportNamesByVariable.has(variable)
+				) {
+					usedNames.add("exports");
 				}
 			}
 		}
@@ -80,24 +85,38 @@ export default class ChildScope extends Scope {
 	deconflict(
 		format: InternalModuleFormat,
 		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
-		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>,
 	): void {
 		const usedNames = new Set<string>();
-		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);
+		this.addUsedOutsideNames(
+			usedNames,
+			format,
+			exportNamesByVariable,
+			accessedGlobalsByScope,
+		);
 		if (this.accessedDynamicImports) {
 			for (const importExpression of this.accessedDynamicImports) {
 				if (importExpression.inlineNamespace) {
-					usedNames.add(importExpression.inlineNamespace.getBaseVariableName());
+					usedNames.add(
+						importExpression.inlineNamespace.getBaseVariableName(),
+					);
 				}
 			}
 		}
 		for (const [name, variable] of this.variables) {
 			if (variable.included || variable.alwaysRendered) {
-				variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
+				variable.setRenderNames(
+					null,
+					getSafeName(name, usedNames, variable.forbiddenNames),
+				);
 			}
 		}
 		for (const scope of this.children) {
-			scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
+			scope.deconflict(
+				format,
+				exportNamesByVariable,
+				accessedGlobalsByScope,
+			);
 		}
 	}
 
@@ -106,7 +125,8 @@ export default class ChildScope extends Scope {
 	}
 
 	findVariable(name: string): Variable {
-		const knownVariable = this.variables.get(name) || this.accessedOutsideVariables.get(name);
+		const knownVariable =
+			this.variables.get(name) || this.accessedOutsideVariables.get(name);
 		if (knownVariable) {
 			return knownVariable;
 		}

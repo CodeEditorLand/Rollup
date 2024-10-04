@@ -1,7 +1,8 @@
-import { resolve } from 'node:path';
-import process from 'node:process';
-import { createFilter } from '@rollup/pluginutils';
-import { rollupInternal } from '../rollup/rollup';
+import { resolve } from "node:path";
+import process from "node:process";
+import { createFilter } from "@rollup/pluginutils";
+
+import { rollupInternal } from "../rollup/rollup";
 import type {
 	ChangeEvent,
 	MergedRollupOptions,
@@ -9,26 +10,29 @@ import type {
 	RollupBuild,
 	RollupCache,
 	RollupWatcher,
-	WatcherOptions
-} from '../rollup/types';
-import { FileWatcher } from './fileWatcher';
+	WatcherOptions,
+} from "../rollup/types";
+import { FileWatcher } from "./fileWatcher";
 
-const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'buggy' | null>> = {
+const eventsRewrites: Record<
+	ChangeEvent,
+	Record<ChangeEvent, ChangeEvent | "buggy" | null>
+> = {
 	create: {
-		create: 'buggy',
+		create: "buggy",
 		delete: null, //delete file from map
-		update: 'create'
+		update: "create",
 	},
 	delete: {
-		create: 'update',
-		delete: 'buggy',
-		update: 'buggy'
+		create: "update",
+		delete: "buggy",
+		update: "buggy",
 	},
 	update: {
-		create: 'buggy',
-		delete: 'delete',
-		update: 'update'
-	}
+		create: "buggy",
+		delete: "delete",
+		update: "update",
+	},
 };
 
 export class Watcher {
@@ -42,12 +46,15 @@ export class Watcher {
 	private running = true;
 	private readonly tasks: Task[];
 
-	constructor(optionsList: readonly MergedRollupOptions[], emitter: RollupWatcher) {
+	constructor(
+		optionsList: readonly MergedRollupOptions[],
+		emitter: RollupWatcher,
+	) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		this.tasks = optionsList.map(options => new Task(this, options));
+		this.tasks = optionsList.map((options) => new Task(this, options));
 		for (const { watch } of optionsList) {
-			if (watch && typeof watch.buildDelay === 'number') {
+			if (watch && typeof watch.buildDelay === "number") {
 				this.buildDelay = Math.max(this.buildDelay, watch.buildDelay!);
 			}
 		}
@@ -61,16 +68,18 @@ export class Watcher {
 		for (const task of this.tasks) {
 			task.close();
 		}
-		await this.emitter.emit('close');
+		await this.emitter.emit("close");
 		this.emitter.removeAllListeners();
 	}
 
 	invalidate(file?: { event: ChangeEvent; id: string }): void {
 		if (file) {
 			const previousEvent = this.invalidatedIds.get(file.id);
-			const event = previousEvent ? eventsRewrites[previousEvent][file.event] : file.event;
+			const event = previousEvent
+				? eventsRewrites[previousEvent][file.event]
+				: file.event;
 
-			if (event === 'buggy') {
+			if (event === "buggy") {
 				//TODO: throws or warn? Currently just ignore, uses new event
 				this.invalidatedIds.set(file.id, file.event);
 			} else if (event === null) {
@@ -90,21 +99,23 @@ export class Watcher {
 			this.buildTimeout = null;
 			try {
 				await Promise.all(
-					[...this.invalidatedIds].map(([id, event]) => this.emitter.emit('change', id, { event }))
+					[...this.invalidatedIds].map(([id, event]) =>
+						this.emitter.emit("change", id, { event }),
+					),
 				);
 				this.invalidatedIds.clear();
-				await this.emitter.emit('restart');
+				await this.emitter.emit("restart");
 				this.emitter.removeListenersForCurrentRun();
 				this.run();
 			} catch (error: any) {
 				this.invalidatedIds.clear();
-				await this.emitter.emit('event', {
-					code: 'ERROR',
+				await this.emitter.emit("event", {
+					code: "ERROR",
 					error,
-					result: null
+					result: null,
 				});
-				await this.emitter.emit('event', {
-					code: 'END'
+				await this.emitter.emit("event", {
+					code: "END",
 				});
 			}
 		}, this.buildDelay);
@@ -112,8 +123,8 @@ export class Watcher {
 
 	private async run(): Promise<void> {
 		this.running = true;
-		await this.emitter.emit('event', {
-			code: 'START'
+		await this.emitter.emit("event", {
+			code: "START",
 		});
 
 		for (const task of this.tasks) {
@@ -121,8 +132,8 @@ export class Watcher {
 		}
 
 		this.running = false;
-		await this.emitter.emit('event', {
-			code: 'END'
+		await this.emitter.emit("event", {
+			code: "END",
 		});
 		if (this.rerun) {
 			this.rerun = false;
@@ -152,8 +163,9 @@ export class Task {
 
 		this.skipWrite = Boolean(options.watch && options.watch.skipWrite);
 		this.outputs = this.options.output;
-		this.outputFiles = this.outputs.map(output => {
-			if (output.file || output.dir) return resolve(output.file || output.dir!);
+		this.outputFiles = this.outputs.map((output) => {
+			if (output.file || output.dir)
+				return resolve(output.file || output.dir!);
 			return undefined as never;
 		});
 
@@ -162,7 +174,7 @@ export class Task {
 		this.fileWatcher = new FileWatcher(this, {
 			...watchOptions.chokidar,
 			disableGlobbing: true,
-			ignoreInitial: true
+			ignoreInitial: true,
 		});
 	}
 
@@ -171,7 +183,10 @@ export class Task {
 		this.fileWatcher.close();
 	}
 
-	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }): void {
+	invalidate(
+		id: string,
+		details: { event: ChangeEvent; isTransformDependency?: boolean },
+	): void {
 		this.invalidated = true;
 		if (details.isTransformDependency) {
 			for (const module of this.cache.modules) {
@@ -189,15 +204,15 @@ export class Task {
 
 		const options = {
 			...this.options,
-			cache: this.cache
+			cache: this.cache,
 		};
 
 		const start = Date.now();
 
-		await this.watcher.emitter.emit('event', {
-			code: 'BUNDLE_START',
+		await this.watcher.emitter.emit("event", {
+			code: "BUNDLE_START",
 			input: this.options.input,
-			output: this.outputFiles
+			output: this.outputFiles,
 		});
 		let result: RollupBuild | null = null;
 
@@ -207,13 +222,16 @@ export class Task {
 				return;
 			}
 			this.updateWatchedFiles(result);
-			this.skipWrite || (await Promise.all(this.outputs.map(output => result!.write(output))));
-			await this.watcher.emitter.emit('event', {
-				code: 'BUNDLE_END',
+			this.skipWrite ||
+				(await Promise.all(
+					this.outputs.map((output) => result!.write(output)),
+				));
+			await this.watcher.emitter.emit("event", {
+				code: "BUNDLE_END",
 				duration: Date.now() - start,
 				input: this.options.input,
 				output: this.outputFiles,
-				result
+				result,
 			});
 		} catch (error: any) {
 			if (!this.closed) {
@@ -223,13 +241,15 @@ export class Task {
 					}
 				}
 				if (error.id) {
-					this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
+					this.cache.modules = this.cache.modules.filter(
+						(module) => module.id !== error.id,
+					);
 				}
 			}
-			await this.watcher.emitter.emit('event', {
-				code: 'ERROR',
+			await this.watcher.emitter.emit("event", {
+				code: "ERROR",
 				error,
-				result
+				result,
 			});
 		}
 	}
@@ -259,7 +279,7 @@ export class Task {
 		this.watched.add(id);
 
 		if (this.outputFiles.includes(id)) {
-			throw new Error('Cannot import the generated bundle');
+			throw new Error("Cannot import the generated bundle");
 		}
 
 		// this is necessary to ensure that any 'renamed' files

@@ -1,12 +1,12 @@
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
-import type LocalVariable from '../variables/LocalVariable';
-import type Variable from '../variables/Variable';
-import type * as NodeType from './NodeType';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
-import { NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { HasEffectsContext } from "../ExecutionContext";
+import type { NodeInteractionAssigned } from "../NodeInteractions";
+import { EMPTY_PATH, UnknownKey, type ObjectPath } from "../utils/PathTracker";
+import type LocalVariable from "../variables/LocalVariable";
+import type Variable from "../variables/Variable";
+import type * as NodeType from "./NodeType";
+import { UNKNOWN_EXPRESSION, type ExpressionEntity } from "./shared/Expression";
+import { NodeBase } from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class RestElement extends NodeBase implements PatternNode {
 	declare argument: PatternNode;
@@ -15,7 +15,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 
 	addExportedVariables(
 		variables: readonly Variable[],
-		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 	): void {
 		this.argument.addExportedVariables(variables, exportNamesByVariable);
 	}
@@ -32,11 +32,15 @@ export default class RestElement extends NodeBase implements PatternNode {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionAssigned,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		return (
 			path.length > 0 ||
-			this.argument.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
+			this.argument.hasEffectsOnInteractionAtPath(
+				EMPTY_PATH,
+				interaction,
+				context,
+			)
 		);
 	}
 

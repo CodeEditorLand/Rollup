@@ -1,12 +1,12 @@
-import type { AstContext } from '../../Module';
-import type { InclusionContext } from '../ExecutionContext';
-import type Identifier from '../nodes/Identifier';
-import SpreadElement from '../nodes/SpreadElement';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
-import type LocalVariable from '../variables/LocalVariable';
-import ParameterVariable from '../variables/ParameterVariable';
-import ChildScope from './ChildScope';
-import type Scope from './Scope';
+import type { AstContext } from "../../Module";
+import type { InclusionContext } from "../ExecutionContext";
+import type Identifier from "../nodes/Identifier";
+import type { ExpressionEntity } from "../nodes/shared/Expression";
+import SpreadElement from "../nodes/SpreadElement";
+import type LocalVariable from "../variables/LocalVariable";
+import ParameterVariable from "../variables/ParameterVariable";
+import ChildScope from "./ChildScope";
+import type Scope from "./Scope";
 
 export default class ParameterScope extends ChildScope {
 	readonly hoistedBodyVarScope: ChildScope;
@@ -26,7 +26,9 @@ export default class ParameterScope extends ChildScope {
 	addParameterDeclaration(identifier: Identifier): ParameterVariable {
 		const { name } = identifier;
 		const variable = new ParameterVariable(name, identifier, this.context);
-		const localVariable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
+		const localVariable = this.hoistedBodyVarScope.variables.get(
+			name,
+		) as LocalVariable;
 		if (localVariable) {
 			this.hoistedBodyVarScope.variables.set(name, variable);
 			variable.mergeDeclarations(localVariable);
@@ -35,7 +37,10 @@ export default class ParameterScope extends ChildScope {
 		return variable;
 	}
 
-	addParameterVariables(parameters: ParameterVariable[][], hasRest: boolean): void {
+	addParameterVariables(
+		parameters: ParameterVariable[][],
+		hasRest: boolean,
+	): void {
 		this.parameters = parameters;
 		for (const parameterList of parameters) {
 			for (const parameter of parameterList) {
@@ -47,11 +52,12 @@ export default class ParameterScope extends ChildScope {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[],
 	): void {
 		let calledFromTryStatement = false;
 		let argumentIncluded = false;
-		const restParameter = this.hasRest && this.parameters[this.parameters.length - 1];
+		const restParameter =
+			this.hasRest && this.parameters[this.parameters.length - 1];
 		for (const checkedArgument of parameters) {
 			if (checkedArgument instanceof SpreadElement) {
 				for (const argument of parameters) {

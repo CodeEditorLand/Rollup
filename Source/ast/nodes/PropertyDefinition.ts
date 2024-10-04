@@ -1,17 +1,20 @@
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import type * as NodeType from './NodeType';
-import type PrivateIdentifier from './PrivateIdentifier';
-import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
+import type { HasEffectsContext } from "../ExecutionContext";
+import type {
+	NodeInteraction,
+	NodeInteractionCalled,
+} from "../NodeInteractions";
+import type { ObjectPath, PathTracker } from "../utils/PathTracker";
+import type * as NodeType from "./NodeType";
+import type PrivateIdentifier from "./PrivateIdentifier";
+import { Flag, isFlagSet, setFlag } from "./shared/BitFlags";
 import {
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownValue,
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_RETURN_EXPRESSION,
-	UnknownValue
-} from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+} from "./shared/Expression";
+import { NodeBase, type ExpressionNode } from "./shared/Node";
 
 export default class PropertyDefinition extends NodeBase {
 	declare key: ExpressionNode | PrivateIdentifier;
@@ -29,9 +32,13 @@ export default class PropertyDefinition extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	): void {
-		this.value?.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+		this.value?.deoptimizeArgumentsOnInteractionAtPath(
+			interaction,
+			path,
+			recursionTracker,
+		);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
@@ -41,7 +48,7 @@ export default class PropertyDefinition extends NodeBase {
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): LiteralValueOrUnknown {
 		return this.value
 			? this.value.getLiteralValueAtPath(path, recursionTracker, origin)
@@ -52,23 +59,34 @@ export default class PropertyDefinition extends NodeBase {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): [expression: ExpressionEntity, isPure: boolean] {
 		return this.value
-			? this.value.getReturnExpressionWhenCalledAtPath(path, interaction, recursionTracker, origin)
+			? this.value.getReturnExpressionWhenCalledAtPath(
+					path,
+					interaction,
+					recursionTracker,
+					origin,
+				)
 			: UNKNOWN_RETURN_EXPRESSION;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		return this.key.hasEffects(context) || (this.static && !!this.value?.hasEffects(context));
+		return (
+			this.key.hasEffects(context) ||
+			(this.static && !!this.value?.hasEffects(context))
+		);
 	}
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
-		return !this.value || this.value.hasEffectsOnInteractionAtPath(path, interaction, context);
+		return (
+			!this.value ||
+			this.value.hasEffectsOnInteractionAtPath(path, interaction, context)
+		);
 	}
 
 	protected applyDeoptimizations() {}

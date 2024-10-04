@@ -1,17 +1,16 @@
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_CALLED } from '../NodeInteractions';
-import ReturnValueScope from '../scopes/ReturnValueScope';
-import type Scope from '../scopes/Scope';
-import { type ObjectPath } from '../utils/PathTracker';
-import type BlockStatement from './BlockStatement';
-import Identifier from './Identifier';
-import type * as NodeType from './NodeType';
-import FunctionBase from './shared/FunctionBase';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
-import { ObjectEntity } from './shared/ObjectEntity';
-import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
-import type { PatternNode } from './shared/Pattern';
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import { INTERACTION_CALLED, type NodeInteraction } from "../NodeInteractions";
+import ReturnValueScope from "../scopes/ReturnValueScope";
+import type Scope from "../scopes/Scope";
+import { type ObjectPath } from "../utils/PathTracker";
+import type BlockStatement from "./BlockStatement";
+import Identifier from "./Identifier";
+import type * as NodeType from "./NodeType";
+import FunctionBase from "./shared/FunctionBase";
+import type { ExpressionNode, IncludeChildren } from "./shared/Node";
+import { ObjectEntity } from "./shared/ObjectEntity";
+import { OBJECT_PROTOTYPE } from "./shared/ObjectPrototype";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class ArrowFunctionExpression extends FunctionBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -33,7 +32,7 @@ export default class ArrowFunctionExpression extends FunctionBase {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		if (super.hasEffectsOnInteractionAtPath(path, interaction, context)) {
 			return true;
@@ -50,7 +49,7 @@ export default class ArrowFunctionExpression extends FunctionBase {
 				continues: false,
 				labels: new Set(),
 				returnYield: true,
-				this: false
+				this: false,
 			};
 			if (this.body.hasEffects(context)) return true;
 			context.ignore = ignore;
@@ -59,7 +58,10 @@ export default class ArrowFunctionExpression extends FunctionBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		super.include(context, includeChildrenRecursively);
 		for (const parameter of this.params) {
 			if (!(parameter instanceof Identifier)) {

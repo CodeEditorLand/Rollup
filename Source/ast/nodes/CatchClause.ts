@@ -1,10 +1,10 @@
-import CatchScope from '../scopes/CatchScope';
-import type ChildScope from '../scopes/ChildScope';
-import type BlockStatement from './BlockStatement';
-import type * as NodeType from './NodeType';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type GenericEsTreeNode, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import CatchScope from "../scopes/CatchScope";
+import type ChildScope from "../scopes/ChildScope";
+import type BlockStatement from "./BlockStatement";
+import type * as NodeType from "./NodeType";
+import { UNKNOWN_EXPRESSION } from "./shared/Expression";
+import { NodeBase, type GenericEsTreeNode } from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class CatchClause extends NodeBase {
 	declare body: BlockStatement;
@@ -23,12 +23,13 @@ export default class CatchClause extends NodeBase {
 		// name instead of the variable
 		const { param } = esTreeNode;
 		if (param) {
-			(this.param as GenericEsTreeNode) = new (this.scope.context.getNodeConstructor(param.type))(
-				param,
-				this,
-				this.scope
-			);
-			this.param!.declare('parameter', UNKNOWN_EXPRESSION);
+			(this.param as GenericEsTreeNode) =
+				new (this.scope.context.getNodeConstructor(param.type))(
+					param,
+					this,
+					this.scope,
+				);
+			this.param!.declare("parameter", UNKNOWN_EXPRESSION);
 		}
 		super.parseNode(esTreeNode);
 	}

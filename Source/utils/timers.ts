@@ -2,11 +2,11 @@ import type {
 	NormalizedInputOptions,
 	Plugin,
 	PluginHooks,
-	SerializedTimings
-} from '../rollup/types';
-import { doNothing } from './doNothing';
-import performance from './performance';
-import process from './process';
+	SerializedTimings,
+} from "../rollup/types";
+import { doNothing } from "./doNothing";
+import performance from "./performance";
+import process from "./process";
 
 interface Timer {
 	memory: number;
@@ -30,7 +30,7 @@ function getPersistedLabel(label: string, level: number): string {
 			return label;
 		}
 		default: {
-			return `${'  '.repeat(level - 4)}- ${label}`;
+			return `${"  ".repeat(level - 4)}- ${label}`;
 		}
 	}
 }
@@ -49,7 +49,7 @@ function timeStartImpl(label: string, level = 3): void {
 			startMemory,
 			startTime,
 			time: 0,
-			totalMemory: 0
+			totalMemory: 0,
 		});
 	} else {
 		timer.startMemory = startMemory;
@@ -83,24 +83,24 @@ export let timeStart: (label: string, level?: number) => void = doNothing;
 export let timeEnd: (label: string, level?: number) => void = doNothing;
 
 const TIMED_PLUGIN_HOOKS: readonly (keyof PluginHooks)[] = [
-	'augmentChunkHash',
-	'buildEnd',
-	'buildStart',
-	'generateBundle',
-	'load',
-	'moduleParsed',
-	'options',
-	'outputOptions',
-	'renderChunk',
-	'renderDynamicImport',
-	'renderStart',
-	'resolveDynamicImport',
-	'resolveFileUrl',
-	'resolveId',
-	'resolveImportMeta',
-	'shouldTransformCachedModule',
-	'transform',
-	'writeBundle'
+	"augmentChunkHash",
+	"buildEnd",
+	"buildStart",
+	"generateBundle",
+	"load",
+	"moduleParsed",
+	"options",
+	"outputOptions",
+	"renderChunk",
+	"renderDynamicImport",
+	"renderStart",
+	"resolveDynamicImport",
+	"resolveFileUrl",
+	"resolveId",
+	"resolveImportMeta",
+	"shouldTransformCachedModule",
+	"transform",
+	"writeBundle",
 ];
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
@@ -114,7 +114,10 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			}
 			timerLabel += ` - ${hook}`;
 
-			const handler = function (this: any, ...parameters: readonly unknown[]) {
+			const handler = function (
+				this: any,
+				...parameters: readonly unknown[]
+			) {
 				timeStart(timerLabel, 4);
 				const result = hookFunction.apply(this, parameters);
 				timeEnd(timerLabel, 4);
@@ -122,7 +125,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			};
 
 			let hookFunction: any;
-			if (typeof plugin[hook].handler === 'function') {
+			if (typeof plugin[hook].handler === "function") {
 				hookFunction = plugin[hook].handler;
 				plugin[hook].handler = handler;
 			} else {

@@ -13,56 +13,56 @@ export function isRelative(path: string): boolean {
 }
 
 export function normalize(path: string): string {
-	return path.replace(ALL_BACKSLASHES_REGEX, '/');
+	return path.replace(ALL_BACKSLASHES_REGEX, "/");
 }
 
 export function basename(path: string): string {
-	return path.split(ANY_SLASH_REGEX).pop() || '';
+	return path.split(ANY_SLASH_REGEX).pop() || "";
 }
 
 export function dirname(path: string): string {
 	const match = /[/\\][^/\\]*$/.exec(path);
-	if (!match) return '.';
+	if (!match) return ".";
 
 	const directory = path.slice(0, -match[0].length);
 
 	// If `directory` is the empty string, we're at root.
-	return directory || '/';
+	return directory || "/";
 }
 
 export function extname(path: string): string {
 	const match = EXTNAME_REGEX.exec(basename(path)!);
-	return match ? match[0] : '';
+	return match ? match[0] : "";
 }
 
 export function relative(from: string, to: string): string {
 	const fromParts = from.split(ANY_SLASH_REGEX).filter(Boolean);
 	const toParts = to.split(ANY_SLASH_REGEX).filter(Boolean);
 
-	if (fromParts[0] === '.') fromParts.shift();
-	if (toParts[0] === '.') toParts.shift();
+	if (fromParts[0] === ".") fromParts.shift();
+	if (toParts[0] === ".") toParts.shift();
 
 	while (fromParts[0] && toParts[0] && fromParts[0] === toParts[0]) {
 		fromParts.shift();
 		toParts.shift();
 	}
 
-	while (toParts[0] === '..' && fromParts.length > 0) {
+	while (toParts[0] === ".." && fromParts.length > 0) {
 		toParts.shift();
 		fromParts.pop();
 	}
 
 	while (fromParts.pop()) {
-		toParts.unshift('..');
+		toParts.unshift("..");
 	}
 
-	return toParts.join('/');
+	return toParts.join("/");
 }
 
 export function resolve(...paths: string[]): string {
 	const firstPathSegment = paths.shift();
 	if (!firstPathSegment) {
-		return '/';
+		return "/";
 	}
 	let resolvedParts = firstPathSegment.split(ANY_SLASH_REGEX);
 
@@ -72,9 +72,9 @@ export function resolve(...paths: string[]): string {
 		} else {
 			const parts = path.split(ANY_SLASH_REGEX);
 
-			while (parts[0] === '.' || parts[0] === '..') {
+			while (parts[0] === "." || parts[0] === "..") {
 				const part = parts.shift();
-				if (part === '..') {
+				if (part === "..") {
 					resolvedParts.pop();
 				}
 			}
@@ -83,5 +83,5 @@ export function resolve(...paths: string[]): string {
 		}
 	}
 
-	return resolvedParts.join('/');
+	return resolvedParts.join("/");
 }

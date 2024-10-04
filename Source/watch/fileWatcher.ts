@@ -1,7 +1,8 @@
-import { platform } from 'node:os';
-import chokidar, { type FSWatcher } from 'chokidar';
-import type { ChangeEvent, ChokidarOptions } from '../rollup/types';
-import type { Task } from './watch';
+import { platform } from "node:os";
+import chokidar, { type FSWatcher } from "chokidar";
+
+import type { ChangeEvent, ChokidarOptions } from "../rollup/types";
+import type { Task } from "./watch";
 
 export class FileWatcher {
 	private readonly chokidarOptions: ChokidarOptions;
@@ -33,7 +34,8 @@ export class FileWatcher {
 
 	watch(id: string, isTransformDependency: boolean): void {
 		if (isTransformDependency) {
-			const watcher = this.transformWatchers.get(id) ?? this.createWatcher(id);
+			const watcher =
+				this.transformWatchers.get(id) ?? this.createWatcher(id);
 			watcher.add(id);
 			this.transformWatchers.set(id, watcher);
 		} else {
@@ -43,7 +45,7 @@ export class FileWatcher {
 
 	private createWatcher(transformWatcherId: string | null): FSWatcher {
 		const task = this.task;
-		const isLinux = platform() === 'linux';
+		const isLinux = platform() === "linux";
 		const isTransformDependency = transformWatcherId !== null;
 		const handleChange = (id: string, event: ChangeEvent) => {
 			const changedId = transformWatcherId || id;
@@ -58,9 +60,9 @@ export class FileWatcher {
 		};
 		const watcher = chokidar
 			.watch([], this.chokidarOptions)
-			.on('add', id => handleChange(id, 'create'))
-			.on('change', id => handleChange(id, 'update'))
-			.on('unlink', id => handleChange(id, 'delete'));
+			.on("add", (id) => handleChange(id, "create"))
+			.on("change", (id) => handleChange(id, "update"))
+			.on("unlink", (id) => handleChange(id, "delete"));
 		return watcher;
 	}
 }

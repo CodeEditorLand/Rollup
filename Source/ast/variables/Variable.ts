@@ -1,12 +1,14 @@
-import type ExternalModule from '../../ExternalModule';
-import type Module from '../../Module';
-import type { RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_ACCESSED } from '../NodeInteractions';
-import type Identifier from '../nodes/Identifier';
-import { ExpressionEntity } from '../nodes/shared/Expression';
-import type { ObjectPath } from '../utils/PathTracker';
+import type ExternalModule from "../../ExternalModule";
+import type Module from "../../Module";
+import type { RenderOptions } from "../../utils/renderHelpers";
+import type { HasEffectsContext } from "../ExecutionContext";
+import {
+	INTERACTION_ACCESSED,
+	type NodeInteraction,
+} from "../NodeInteractions";
+import type Identifier from "../nodes/Identifier";
+import { ExpressionEntity } from "../nodes/shared/Expression";
+import type { ObjectPath } from "../utils/PathTracker";
 
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;
@@ -45,19 +47,21 @@ export default class Variable extends ExpressionEntity {
 
 	getName(
 		getPropertyAccess: (name: string) => string,
-		useOriginalName?: RenderOptions['useOriginalName']
+		useOriginalName?: RenderOptions["useOriginalName"],
 	): string {
 		if (useOriginalName?.(this)) {
 			return this.name;
 		}
 		const name = this.renderName || this.name;
-		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
+		return this.renderBaseName
+			? `${this.renderBaseName}${getPropertyAccess(name)}`
+			: name;
 	}
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		{ type }: NodeInteraction,
-		_context: HasEffectsContext
+		_context: HasEffectsContext,
 	): boolean {
 		return type !== INTERACTION_ACCESSED || path.length > 0;
 	}

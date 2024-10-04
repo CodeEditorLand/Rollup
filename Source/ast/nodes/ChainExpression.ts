@@ -1,14 +1,18 @@
-import type MagicString from 'magic-string';
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import type CallExpression from './CallExpression';
-import type MemberExpression from './MemberExpression';
-import type * as NodeType from './NodeType';
-import type { LiteralValueOrUnknown } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import type MagicString from "magic-string";
 
-export default class ChainExpression extends NodeBase implements DeoptimizableEntity {
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
+import type { HasEffectsContext } from "../ExecutionContext";
+import type { ObjectPath, PathTracker } from "../utils/PathTracker";
+import type CallExpression from "./CallExpression";
+import type MemberExpression from "./MemberExpression";
+import type * as NodeType from "./NodeType";
+import type { LiteralValueOrUnknown } from "./shared/Expression";
+import { NodeBase } from "./shared/Node";
+
+export default class ChainExpression
+	extends NodeBase
+	implements DeoptimizableEntity
+{
 	declare expression: CallExpression | MemberExpression;
 	declare type: NodeType.tChainExpression;
 
@@ -18,10 +22,14 @@ export default class ChainExpression extends NodeBase implements DeoptimizableEn
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): LiteralValueOrUnknown {
 		if (this.expression.isSkippedAsOptional(origin)) return undefined;
-		return this.expression.getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.expression.getLiteralValueAtPath(
+			path,
+			recursionTracker,
+			origin,
+		);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {

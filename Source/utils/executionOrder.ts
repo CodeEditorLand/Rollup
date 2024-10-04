@@ -1,12 +1,14 @@
-import type ExternalModule from '../ExternalModule';
-import Module from '../Module';
+import type ExternalModule from "../ExternalModule";
+import Module from "../Module";
 
 interface OrderedExecutionUnit {
 	execIndex: number;
 }
 
-const compareExecIndex = <T extends OrderedExecutionUnit>(unitA: T, unitB: T) =>
-	unitA.execIndex > unitB.execIndex ? 1 : -1;
+const compareExecIndex = <T extends OrderedExecutionUnit>(
+	unitA: T,
+	unitB: T,
+) => (unitA.execIndex > unitB.execIndex ? 1 : -1);
 
 export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 	units.sort(compareExecIndex);
@@ -28,7 +30,9 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 			for (const dependency of module.dependencies) {
 				if (parents.has(dependency)) {
 					if (!analysedModules.has(dependency)) {
-						cyclePaths.push(getCyclePath(dependency as Module, module, parents));
+						cyclePaths.push(
+							getCyclePath(dependency as Module, module, parents),
+						);
 					}
 					continue;
 				}
@@ -70,7 +74,7 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 function getCyclePath(
 	module: Module,
 	parent: Module,
-	parents: ReadonlyMap<Module | ExternalModule, Module | null>
+	parents: ReadonlyMap<Module | ExternalModule, Module | null>,
 ): string[] {
 	const cycleSymbol = Symbol(module.id);
 	const path = [module.id];

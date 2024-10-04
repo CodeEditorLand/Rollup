@@ -1,10 +1,17 @@
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
-import { NODE_INTERACTION_UNKNOWN_ACCESS } from '../NodeInteractions';
-import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
-import type * as NodeType from './NodeType';
-import { type ExpressionNode, NodeBase } from './shared/Node';
+import type { NormalizedTreeshakingOptions } from "../../rollup/types";
+import type { HasEffectsContext } from "../ExecutionContext";
+import {
+	NODE_INTERACTION_UNKNOWN_ACCESS,
+	type NodeInteraction,
+} from "../NodeInteractions";
+import {
+	UNKNOWN_PATH,
+	UnknownKey,
+	type ObjectPath,
+	type PathTracker,
+} from "../utils/PathTracker";
+import type * as NodeType from "./NodeType";
+import { NodeBase, type ExpressionNode } from "./shared/Node";
 
 export default class SpreadElement extends NodeBase {
 	declare argument: ExpressionNode;
@@ -13,13 +20,13 @@ export default class SpreadElement extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	): void {
 		if (path.length > 0) {
 			this.argument.deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
 				[UnknownKey, ...path],
-				recursionTracker
+				recursionTracker,
 			);
 		}
 	}
@@ -31,11 +38,11 @@ export default class SpreadElement extends NodeBase {
 		return (
 			this.argument.hasEffects(context) ||
 			(propertyReadSideEffects &&
-				(propertyReadSideEffects === 'always' ||
+				(propertyReadSideEffects === "always" ||
 					this.argument.hasEffectsOnInteractionAtPath(
 						UNKNOWN_PATH,
 						NODE_INTERACTION_UNKNOWN_ACCESS,
-						context
+						context,
 					)))
 		);
 	}

@@ -4,5 +4,7 @@ const backSlashRegEx = /\\/g;
 
 export function escapeId(id: string): string {
 	if (!needsEscapeRegEx.test(id)) return id;
-	return id.replace(backSlashRegEx, '\\\\').replace(quoteNewlineRegEx, '\\$1');
+	return id
+		.replace(backSlashRegEx, "\\\\")
+		.replace(quoteNewlineRegEx, "\\$1");
 }

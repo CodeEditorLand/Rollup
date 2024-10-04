@@ -1,26 +1,26 @@
 // internal
-declare module 'help.md' {
+declare module "help.md" {
 	const value: string;
 	export default value;
 }
 
 // external libs
-declare module 'rollup-plugin-string' {
-	import type { PluginImpl } from 'rollup';
+declare module "rollup-plugin-string" {
+	import type { PluginImpl } from "rollup";
 
 	export const string: PluginImpl;
 }
 
-declare module 'acorn-import-assertions' {
+declare module "acorn-import-assertions" {
 	export const importAssertions: () => unknown;
 }
 
-declare module 'is-reference' {
-	import type * as estree from 'estree';
+declare module "is-reference" {
+	import type * as estree from "estree";
 
 	export default function is_reference(
 		node: NodeWithFieldDefinition,
-		parent: NodeWithFieldDefinition
+		parent: NodeWithFieldDefinition,
 	): boolean;
 
 	export type Node =
@@ -99,7 +99,7 @@ declare module 'is-reference' {
 		| Node
 		| {
 				computed: boolean;
-				type: 'FieldDefinition';
+				type: "FieldDefinition";
 				value: Node;
 		  };
 }

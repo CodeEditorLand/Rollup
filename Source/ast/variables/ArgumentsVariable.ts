@@ -1,17 +1,20 @@
-import type { AstContext } from '../../Module';
-import type { NodeInteraction } from '../NodeInteractions';
-import { INTERACTION_ACCESSED } from '../NodeInteractions';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import type { ObjectPath } from '../utils/PathTracker';
-import { UNKNOWN_PATH } from '../utils/PathTracker';
-import LocalVariable from './LocalVariable';
+import type { AstContext } from "../../Module";
+import {
+	INTERACTION_ACCESSED,
+	type NodeInteraction,
+} from "../NodeInteractions";
+import {
+	UNKNOWN_EXPRESSION,
+	type ExpressionEntity,
+} from "../nodes/shared/Expression";
+import { UNKNOWN_PATH, type ObjectPath } from "../utils/PathTracker";
+import LocalVariable from "./LocalVariable";
 
 export default class ArgumentsVariable extends LocalVariable {
 	private deoptimizedArguments: ExpressionEntity[] = [];
 
 	constructor(context: AstContext) {
-		super('arguments', null, UNKNOWN_EXPRESSION, context);
+		super("arguments", null, UNKNOWN_EXPRESSION, context);
 	}
 
 	addArgumentToBeDeoptimized(argument: ExpressionEntity): void {
@@ -22,7 +25,10 @@ export default class ArgumentsVariable extends LocalVariable {
 		}
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		{ type }: NodeInteraction,
+	): boolean {
 		return type !== INTERACTION_ACCESSED || path.length > 1;
 	}
 

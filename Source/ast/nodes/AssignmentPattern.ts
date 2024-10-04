@@ -1,15 +1,23 @@
-import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
-import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
-import type LocalVariable from '../variables/LocalVariable';
-import type Variable from '../variables/Variable';
-import type * as NodeType from './NodeType';
-import type { ExpressionEntity } from './shared/Expression';
-import { type ExpressionNode, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type MagicString from "magic-string";
+
+import { BLANK } from "../../utils/blank";
+import type {
+	NodeRenderOptions,
+	RenderOptions,
+} from "../../utils/renderHelpers";
+import type { HasEffectsContext } from "../ExecutionContext";
+import type { NodeInteractionAssigned } from "../NodeInteractions";
+import {
+	EMPTY_PATH,
+	UNKNOWN_PATH,
+	type ObjectPath,
+} from "../utils/PathTracker";
+import type LocalVariable from "../variables/LocalVariable";
+import type Variable from "../variables/Variable";
+import type * as NodeType from "./NodeType";
+import type { ExpressionEntity } from "./shared/Expression";
+import { NodeBase, type ExpressionNode } from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
 	declare left: PatternNode;
@@ -18,7 +26,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 
 	addExportedVariables(
 		variables: readonly Variable[],
-		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 	): void {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
 	}
@@ -34,10 +42,15 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionAssigned,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		return (
-			path.length > 0 || this.left.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)
+			path.length > 0 ||
+			this.left.hasEffectsOnInteractionAtPath(
+				EMPTY_PATH,
+				interaction,
+				context,
+			)
 		);
 	}
 
@@ -48,7 +61,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ isShorthandProperty }: NodeRenderOptions = BLANK
+		{ isShorthandProperty }: NodeRenderOptions = BLANK,
 	): void {
 		this.left.render(code, options, { isShorthandProperty });
 		this.right.render(code, options);

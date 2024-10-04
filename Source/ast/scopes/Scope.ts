@@ -1,10 +1,10 @@
-import type { AstContext } from '../../Module';
-import type Identifier from '../nodes/Identifier';
-import type { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNDEFINED_EXPRESSION } from '../values';
-import LocalVariable from '../variables/LocalVariable';
-import type Variable from '../variables/Variable';
-import type ChildScope from './ChildScope';
+import type { AstContext } from "../../Module";
+import type Identifier from "../nodes/Identifier";
+import type { ExpressionEntity } from "../nodes/shared/Expression";
+import { UNDEFINED_EXPRESSION } from "../values";
+import LocalVariable from "../variables/LocalVariable";
+import type Variable from "../variables/Variable";
+import type ChildScope from "./ChildScope";
 
 export default class Scope {
 	readonly children: ChildScope[] = [];
@@ -14,7 +14,7 @@ export default class Scope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity,
-		_isHoisted: boolean
+		_isHoisted: boolean,
 	): LocalVariable {
 		const name = identifier.name;
 		let variable = this.variables.get(name) as LocalVariable;
@@ -25,7 +25,7 @@ export default class Scope {
 				identifier.name,
 				identifier,
 				init || UNDEFINED_EXPRESSION,
-				context
+				context,
 			);
 			this.variables.set(name, variable);
 		}
@@ -37,6 +37,8 @@ export default class Scope {
 	}
 
 	findVariable(_name: string): Variable {
-		throw new Error('Internal Error: findVariable needs to be implemented by a subclass');
+		throw new Error(
+			"Internal Error: findVariable needs to be implemented by a subclass",
+		);
 	}
 }

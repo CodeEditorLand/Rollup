@@ -1,31 +1,43 @@
-import type MagicString from 'magic-string';
+import type MagicString from "magic-string";
+
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
 	type NodeRenderOptions,
-	type RenderOptions
-} from '../../utils/renderHelpers';
-import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { treeshakeNode } from '../../utils/treeshakeNode';
-import type { InclusionContext } from '../ExecutionContext';
-import type ModuleScope from '../scopes/ModuleScope';
-import type ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ClassDeclaration from './ClassDeclaration';
-import FunctionDeclaration from './FunctionDeclaration';
-import type Identifier from './Identifier';
-import * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+	type RenderOptions,
+} from "../../utils/renderHelpers";
+import { getSystemExportStatement } from "../../utils/systemJsRendering";
+import { treeshakeNode } from "../../utils/treeshakeNode";
+import type { InclusionContext } from "../ExecutionContext";
+import type ModuleScope from "../scopes/ModuleScope";
+import type ExportDefaultVariable from "../variables/ExportDefaultVariable";
+import ClassDeclaration from "./ClassDeclaration";
+import FunctionDeclaration from "./FunctionDeclaration";
+import type Identifier from "./Identifier";
+import * as NodeType from "./NodeType";
+import {
+	NodeBase,
+	type ExpressionNode,
+	type IncludeChildren,
+} from "./shared/Node";
 
 // The header ends at the first non-white-space after "default"
 function getDeclarationStart(code: string, start: number): number {
-	return findNonWhiteSpace(code, findFirstOccurrenceOutsideComment(code, 'default', start) + 7);
+	return findNonWhiteSpace(
+		code,
+		findFirstOccurrenceOutsideComment(code, "default", start) + 7,
+	);
 }
 
 function getFunctionIdInsertPosition(code: string, start: number): number {
 	const declarationEnd =
-		findFirstOccurrenceOutsideComment(code, 'function', start) + 'function'.length;
-	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '(', declarationEnd));
-	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
+		findFirstOccurrenceOutsideComment(code, "function", start) +
+		"function".length;
+	code = code.slice(
+		declarationEnd,
+		findFirstOccurrenceOutsideComment(code, "(", declarationEnd),
+	);
+	const generatorStarPos = findFirstOccurrenceOutsideComment(code, "*");
 	if (generatorStarPos === -1) {
 		return declarationEnd;
 	}
@@ -33,7 +45,10 @@ function getFunctionIdInsertPosition(code: string, start: number): number {
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	declare declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	declare declaration:
+		| FunctionDeclaration
+		| ClassDeclaration
+		| ExpressionNode;
 	declare needsBoundaries: true;
 	declare scope: ModuleScope;
 	declare type: NodeType.tExportDefaultDeclaration;
@@ -41,7 +56,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declare declarationName: string | undefined;
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		super.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
 			this.scope.context.includeVariableInModule(this.variable);
@@ -49,13 +67,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	initialise(): void {
-		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
+		const declaration = this.declaration as
+			| FunctionDeclaration
+			| ClassDeclaration;
 		this.declarationName =
-			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
+			(declaration.id && declaration.id.name) ||
+			(this.declaration as Identifier).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this.declarationName || this.scope.context.getModuleName(),
 			this,
-			this.scope.context
+			this.scope.context,
 		);
 		this.scope.context.addExport(this);
 	}
@@ -64,8 +85,15 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.declaration.removeAnnotations(code);
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
-		const { start, end } = nodeRenderOptions as { end: number; start: number };
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		nodeRenderOptions?: NodeRenderOptions,
+	): void {
+		const { start, end } = nodeRenderOptions as {
+			end: number;
+			start: number;
+		};
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (this.declaration instanceof FunctionDeclaration) {
@@ -73,18 +101,25 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				code,
 				declarationStart,
 				this.declaration.id === null
-					? getFunctionIdInsertPosition(code.original, declarationStart)
+					? getFunctionIdInsertPosition(
+							code.original,
+							declarationStart,
+						)
 					: null,
-				options
+				options,
 			);
 		} else if (this.declaration instanceof ClassDeclaration) {
 			this.renderNamedDeclaration(
 				code,
 				declarationStart,
 				this.declaration.id === null
-					? findFirstOccurrenceOutsideComment(code.original, 'class', start) + 'class'.length
+					? findFirstOccurrenceOutsideComment(
+							code.original,
+							"class",
+							start,
+						) + "class".length
 					: null,
-				options
+				options,
 			);
 		} else if (this.variable.getOriginalVariable() !== this.variable) {
 			// Remove altogether to prevent re-declaring the same variable
@@ -95,10 +130,10 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else {
 			code.remove(this.start, declarationStart);
 			this.declaration.render(code, options, {
-				renderedSurroundingElement: NodeType.ExpressionStatement
+				renderedSurroundingElement: NodeType.ExpressionStatement,
 			});
-			if (code.original[this.end - 1] !== ';') {
-				code.appendLeft(this.end, ';');
+			if (code.original[this.end - 1] !== ";") {
+				code.appendLeft(this.end, ";");
 			}
 			return;
 		}
@@ -111,12 +146,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code: MagicString,
 		declarationStart: number,
 		idInsertPosition: number | null,
-		options: RenderOptions
+		options: RenderOptions,
 	): void {
 		const {
 			exportNamesByVariable,
 			format,
-			snippets: { getPropertyAccess }
+			snippets: { getPropertyAccess },
 		} = options;
 		const name = this.variable.getName(getPropertyAccess);
 		// Remove `export default`
@@ -126,40 +161,49 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.appendLeft(idInsertPosition, ` ${name}`);
 		}
 		if (
-			format === 'system' &&
+			format === "system" &&
 			this.declaration instanceof ClassDeclaration &&
 			exportNamesByVariable.has(this.variable)
 		) {
-			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
+			code.appendLeft(
+				this.end,
+				` ${getSystemExportStatement([this.variable], options)};`,
+			);
 		}
 	}
 
 	private renderVariableDeclaration(
 		code: MagicString,
 		declarationStart: number,
-		{ format, exportNamesByVariable, snippets: { cnst, getPropertyAccess } }: RenderOptions
+		{
+			format,
+			exportNamesByVariable,
+			snippets: { cnst, getPropertyAccess },
+		}: RenderOptions,
 	): void {
-		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
-		const systemExportNames = format === 'system' && exportNamesByVariable.get(this.variable);
+		const hasTrailingSemicolon =
+			code.original.charCodeAt(this.end - 1) === 59; /*";"*/
+		const systemExportNames =
+			format === "system" && exportNamesByVariable.get(this.variable);
 
 		if (systemExportNames) {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports('${systemExportNames[0]}', `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports('${systemExportNames[0]}', `,
 			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
-				')' + (hasTrailingSemicolon ? '' : ';')
+				")" + (hasTrailingSemicolon ? "" : ";"),
 			);
 		} else {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${cnst} ${this.variable.getName(getPropertyAccess)} = `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = `,
 			);
 			if (!hasTrailingSemicolon) {
-				code.appendLeft(this.end, ';');
+				code.appendLeft(this.end, ";");
 			}
 		}
 	}

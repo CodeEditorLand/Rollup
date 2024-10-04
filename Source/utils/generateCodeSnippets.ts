@@ -1,5 +1,5 @@
-import type { NormalizedOutputOptions } from '../rollup/types';
-import RESERVED_NAMES from './RESERVED_NAMES';
+import type { NormalizedOutputOptions } from "../rollup/types";
+import RESERVED_NAMES from "./RESERVED_NAMES";
 
 export interface GenerateCodeSnippets {
 	_: string;
@@ -12,7 +12,7 @@ export interface GenerateCodeSnippets {
 			functionReturn: boolean;
 			lineBreakIndent: { base: string; t: string } | null;
 			name: string | null;
-		}
+		},
 	): [left: string, right: string];
 	getDirectReturnIifeLeft(
 		parameters: string[],
@@ -20,71 +20,80 @@ export interface GenerateCodeSnippets {
 		options: {
 			needsArrowReturnParens: boolean | undefined;
 			needsWrappedFunction: boolean | undefined;
-		}
+		},
 	): string;
 	getFunctionIntro(
 		parameters: string[],
-		options: { isAsync: boolean; name: string | null }
+		options: { isAsync: boolean; name: string | null },
 	): string;
 	getNonArrowFunctionIntro(
 		parameters: string[],
-		options: { isAsync: boolean; name: string | null }
+		options: { isAsync: boolean; name: string | null },
 	): string;
 	getObject(
 		fields: [key: string | null, value: string][],
-		options: { lineBreakIndent: { base: string; t: string } | null }
+		options: { lineBreakIndent: { base: string; t: string } | null },
 	): string;
 	getPropertyAccess(name: string): string;
 }
 
 export function getGenerateCodeSnippets({
 	compact,
-	generatedCode: { arrowFunctions, constBindings, objectShorthand, reservedNamesAsProps }
+	generatedCode: {
+		arrowFunctions,
+		constBindings,
+		objectShorthand,
+		reservedNamesAsProps,
+	},
 }: NormalizedOutputOptions): GenerateCodeSnippets {
-	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
-	const cnst = constBindings ? 'const' : 'var';
-	const getNonArrowFunctionIntro: GenerateCodeSnippets['getNonArrowFunctionIntro'] = (
-		parameters,
-		{ isAsync, name }
-	) =>
-		`${isAsync ? `async ` : ''}function${name ? ` ${name}` : ''}${_}(${parameters.join(
-			`,${_}`
-		)})${_}`;
+	const { _, n, s } = compact
+		? { _: "", n: "", s: "" }
+		: { _: " ", n: "\n", s: ";" };
+	const cnst = constBindings ? "const" : "var";
+	const getNonArrowFunctionIntro: GenerateCodeSnippets["getNonArrowFunctionIntro"] =
+		(parameters, { isAsync, name }) =>
+			`${isAsync ? `async ` : ""}function${name ? ` ${name}` : ""}${_}(${parameters.join(
+				`,${_}`,
+			)})${_}`;
 
-	const getFunctionIntro: GenerateCodeSnippets['getFunctionIntro'] = arrowFunctions
-		? (parameters, { isAsync, name }) => {
-				const singleParameter = parameters.length === 1;
-				const asyncString = isAsync ? `async${singleParameter ? ' ' : _}` : '';
-				return `${name ? `${cnst} ${name}${_}=${_}` : ''}${asyncString}${
-					singleParameter ? parameters[0] : `(${parameters.join(`,${_}`)})`
-				}${_}=>${_}`;
-		  }
-		: getNonArrowFunctionIntro;
-
-	const getDirectReturnFunction: GenerateCodeSnippets['getDirectReturnFunction'] = (
-		parameters,
-		{ functionReturn, lineBreakIndent, name }
-	) => [
-		`${getFunctionIntro(parameters, {
-			isAsync: false,
-			name
-		})}${
-			arrowFunctions
-				? lineBreakIndent
-					? `${n}${lineBreakIndent.base}${lineBreakIndent.t}`
-					: ''
-				: `{${lineBreakIndent ? `${n}${lineBreakIndent.base}${lineBreakIndent.t}` : _}${
-						functionReturn ? 'return ' : ''
-				  }`
-		}`,
+	const getFunctionIntro: GenerateCodeSnippets["getFunctionIntro"] =
 		arrowFunctions
-			? `${name ? ';' : ''}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : ''}`
-			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : _}}`
-	];
+			? (parameters, { isAsync, name }) => {
+					const singleParameter = parameters.length === 1;
+					const asyncString = isAsync
+						? `async${singleParameter ? " " : _}`
+						: "";
+					return `${name ? `${cnst} ${name}${_}=${_}` : ""}${asyncString}${
+						singleParameter
+							? parameters[0]
+							: `(${parameters.join(`,${_}`)})`
+					}${_}=>${_}`;
+				}
+			: getNonArrowFunctionIntro;
+
+	const getDirectReturnFunction: GenerateCodeSnippets["getDirectReturnFunction"] =
+		(parameters, { functionReturn, lineBreakIndent, name }) => [
+			`${getFunctionIntro(parameters, {
+				isAsync: false,
+				name,
+			})}${
+				arrowFunctions
+					? lineBreakIndent
+						? `${n}${lineBreakIndent.base}${lineBreakIndent.t}`
+						: ""
+					: `{${lineBreakIndent ? `${n}${lineBreakIndent.base}${lineBreakIndent.t}` : _}${
+							functionReturn ? "return " : ""
+						}`
+			}`,
+			arrowFunctions
+				? `${name ? ";" : ""}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : ""}`
+				: `${s}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : _}}`,
+		];
 
 	const isValidPropertyName = reservedNamesAsProps
 		? (name: string): boolean => validPropertyName.test(name)
-		: (name: string): boolean => !RESERVED_NAMES.has(name) && validPropertyName.test(name);
+		: (name: string): boolean =>
+				!RESERVED_NAMES.has(name) && validPropertyName.test(name);
 
 	return {
 		_,
@@ -93,22 +102,24 @@ export function getGenerateCodeSnippets({
 		getDirectReturnIifeLeft: (
 			parameters,
 			returned,
-			{ needsArrowReturnParens, needsWrappedFunction }
+			{ needsArrowReturnParens, needsWrappedFunction },
 		) => {
 			const [left, right] = getDirectReturnFunction(parameters, {
 				functionReturn: true,
 				lineBreakIndent: null,
-				name: null
+				name: null,
 			});
 			return `${wrapIfNeeded(
 				`${left}${wrapIfNeeded(returned, arrowFunctions && needsArrowReturnParens)}${right}`,
-				arrowFunctions || needsWrappedFunction
+				arrowFunctions || needsWrappedFunction,
 			)}(`;
 		},
 		getFunctionIntro,
 		getNonArrowFunctionIntro,
 		getObject(fields, { lineBreakIndent }) {
-			const prefix = lineBreakIndent ? `${n}${lineBreakIndent.base}${lineBreakIndent.t}` : _;
+			const prefix = lineBreakIndent
+				? `${n}${lineBreakIndent.base}${lineBreakIndent.t}`
+				: _;
 			return `{${fields
 				.map(([key, value]) => {
 					if (key === null) return `${prefix}${value}`;
@@ -118,17 +129,25 @@ export function getGenerateCodeSnippets({
 						: `${prefix}${needsQuotes ? `'${key}'` : key}:${_}${value}`;
 				})
 				.join(`,`)}${
-				fields.length === 0 ? '' : lineBreakIndent ? `${n}${lineBreakIndent.base}` : _
+				fields.length === 0
+					? ""
+					: lineBreakIndent
+						? `${n}${lineBreakIndent.base}`
+						: _
 			}}`;
 		},
 		getPropertyAccess: (name: string): string =>
-			isValidPropertyName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
+			isValidPropertyName(name)
+				? `.${name}`
+				: `[${JSON.stringify(name)}]`,
 		n,
-		s
+		s,
 	};
 }
 
-const wrapIfNeeded = (code: string, needsParens: boolean | undefined): string =>
-	needsParens ? `(${code})` : code;
+const wrapIfNeeded = (
+	code: string,
+	needsParens: boolean | undefined,
+): string => (needsParens ? `(${code})` : code);
 
 const validPropertyName = /^(?!\d)[\w$]+$/;

@@ -1,39 +1,44 @@
-import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
-import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
+import type MagicString from "magic-string";
+
+import { BLANK } from "../../utils/blank";
+import { isReassignedExportsMember } from "../../utils/reassignedExportsMember";
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
 	getCommaSeparatedNodesWithBoundaries,
 	type NodeRenderOptions,
-	type RenderOptions
-} from '../../utils/renderHelpers';
+	type RenderOptions,
+} from "../../utils/renderHelpers";
 import {
 	getSystemExportStatement,
-	renderSystemExportExpression
-} from '../../utils/systemJsRendering';
-import type { InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH } from '../utils/PathTracker';
-import type Variable from '../variables/Variable';
-import ArrayPattern from './ArrayPattern';
-import Identifier, { type IdentifierWithVariable } from './Identifier';
-import * as NodeType from './NodeType';
-import ObjectPattern from './ObjectPattern';
-import type VariableDeclarator from './VariableDeclarator';
-import type { InclusionOptions } from './shared/Expression';
-import { type IncludeChildren, NodeBase } from './shared/Node';
+	renderSystemExportExpression,
+} from "../../utils/systemJsRendering";
+import type { InclusionContext } from "../ExecutionContext";
+import { EMPTY_PATH } from "../utils/PathTracker";
+import type Variable from "../variables/Variable";
+import ArrayPattern from "./ArrayPattern";
+import Identifier, { type IdentifierWithVariable } from "./Identifier";
+import * as NodeType from "./NodeType";
+import ObjectPattern from "./ObjectPattern";
+import type { InclusionOptions } from "./shared/Expression";
+import { NodeBase, type IncludeChildren } from "./shared/Node";
+import type VariableDeclarator from "./VariableDeclarator";
 
 function areAllDeclarationsIncludedAndNotExported(
 	declarations: readonly VariableDeclarator[],
-	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 ): boolean {
 	for (const declarator of declarations) {
 		if (!declarator.id.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
-			if (exportNamesByVariable.has(declarator.id.variable!)) return false;
+			if (exportNamesByVariable.has(declarator.id.variable!))
+				return false;
 		} else {
 			const exportedVariables: Variable[] = [];
-			declarator.id.addExportedVariables(exportedVariables, exportNamesByVariable);
+			declarator.id.addExportedVariables(
+				exportedVariables,
+				exportNamesByVariable,
+			);
 			if (exportedVariables.length > 0) return false;
 		}
 	}
@@ -42,7 +47,7 @@ function areAllDeclarationsIncludedAndNotExported(
 
 export default class VariableDeclaration extends NodeBase {
 	declare declarations: readonly VariableDeclarator[];
-	declare kind: 'var' | 'let' | 'const';
+	declare kind: "var" | "let" | "const";
 	declare type: NodeType.tVariableDeclaration;
 
 	deoptimizePath(): void {
@@ -58,11 +63,14 @@ export default class VariableDeclaration extends NodeBase {
 	include(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren,
-		{ asSingleStatement }: InclusionOptions = BLANK
+		{ asSingleStatement }: InclusionOptions = BLANK,
 	): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
+			if (
+				includeChildrenRecursively ||
+				declarator.shouldBeIncluded(context)
+			)
 				declarator.include(context, includeChildrenRecursively);
 			const { id, init } = declarator;
 			if (asSingleStatement) {
@@ -92,10 +100,13 @@ export default class VariableDeclaration extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		nodeRenderOptions: NodeRenderOptions = BLANK
+		nodeRenderOptions: NodeRenderOptions = BLANK,
 	): void {
 		if (
-			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
+			areAllDeclarationsIncludedAndNotExported(
+				this.declarations,
+				options.exportNamesByVariable,
+			)
 		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
@@ -104,7 +115,7 @@ export default class VariableDeclaration extends NodeBase {
 				!nodeRenderOptions.isNoStatement &&
 				code.original.charCodeAt(this.end - 1) !== 59 /*";"*/
 			) {
-				code.appendLeft(this.end, ';');
+				code.appendLeft(this.end, ";");
 			}
 		} else {
 			this.renderReplacedDeclarations(code, options);
@@ -120,108 +131,147 @@ export default class VariableDeclaration extends NodeBase {
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		systemPatternExports: readonly Variable[],
-		options: RenderOptions
+		options: RenderOptions,
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		separatorString += ';';
+		separatorString += ";";
 		if (lastSeparatorPos === null) {
 			code.appendLeft(renderedContentEnd, separatorString);
 		} else {
 			if (
-				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
+				code.original.charCodeAt(actualContentEnd - 1) ===
+					10 /*"\n"*/ &&
 				(code.original.charCodeAt(this.end) === 10 /*"\n"*/ ||
 					code.original.charCodeAt(this.end) === 13) /*"\r"*/
 			) {
 				actualContentEnd--;
-				if (code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/) {
+				if (
+					code.original.charCodeAt(actualContentEnd) === 13 /*"\r"*/
+				) {
 					actualContentEnd--;
 				}
 			}
 			if (actualContentEnd === lastSeparatorPos + 1) {
-				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString);
+				code.overwrite(
+					lastSeparatorPos,
+					renderedContentEnd,
+					separatorString,
+				);
 			} else {
-				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.overwrite(
+					lastSeparatorPos,
+					lastSeparatorPos + 1,
+					separatorString,
+				);
 				code.remove(actualContentEnd, renderedContentEnd);
 			}
 		}
 		if (systemPatternExports.length > 0) {
 			code.appendLeft(
 				renderedContentEnd,
-				` ${getSystemExportStatement(systemPatternExports, options)};`
+				` ${getSystemExportStatement(systemPatternExports, options)};`,
 			);
 		}
 	}
 
-	private renderReplacedDeclarations(code: MagicString, options: RenderOptions): void {
+	private renderReplacedDeclarations(
+		code: MagicString,
+		options: RenderOptions,
+	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
 			this.start + this.kind.length,
-			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
+			this.end -
+				(code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0),
 		);
 		let actualContentEnd: number | undefined, renderedContentEnd: number;
-		renderedContentEnd = findNonWhiteSpace(code.original, this.start + this.kind.length);
+		renderedContentEnd = findNonWhiteSpace(
+			code.original,
+			this.start + this.kind.length,
+		);
 		let lastSeparatorPos = renderedContentEnd - 1;
 		code.remove(this.start, lastSeparatorPos);
 		let isInDeclaration = false;
 		let hasRenderedContent = false;
-		let separatorString = '',
+		let separatorString = "",
 			leadingString,
 			nextSeparatorString;
 		const aggregatedSystemExports: Variable[] = [];
 		const singleSystemExport = gatherSystemExportsAndGetSingleExport(
 			separatedNodes,
 			options,
-			aggregatedSystemExports
+			aggregatedSystemExports,
 		);
-		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
+		for (const {
+			node,
+			start,
+			separator,
+			contentEnd,
+			end,
+		} of separatedNodes) {
 			if (!node.included) {
 				code.remove(start, end);
 				node.removeAnnotations(code);
 				continue;
 			}
 			node.render(code, options);
-			leadingString = '';
-			nextSeparatorString = '';
+			leadingString = "";
+			nextSeparatorString = "";
 			if (
 				!node.id.included ||
 				(node.id instanceof Identifier &&
 					isReassignedExportsMember(
 						(node.id as IdentifierWithVariable).variable,
-						options.exportNamesByVariable
+						options.exportNamesByVariable,
 					))
 			) {
 				if (hasRenderedContent) {
-					separatorString += ';';
+					separatorString += ";";
 				}
 				isInDeclaration = false;
 			} else {
-				if (singleSystemExport && singleSystemExport === node.id.variable) {
-					const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
+				if (
+					singleSystemExport &&
+					singleSystemExport === node.id.variable
+				) {
+					const operatorPos = findFirstOccurrenceOutsideComment(
+						code.original,
+						"=",
+						node.id.end,
+					);
 					renderSystemExportExpression(
 						singleSystemExport,
 						findNonWhiteSpace(code.original, operatorPos + 1),
 						separator === null ? contentEnd : separator,
 						code,
-						options
+						options,
 					);
 				}
 				if (isInDeclaration) {
-					separatorString += ',';
+					separatorString += ",";
 				} else {
 					if (hasRenderedContent) {
-						separatorString += ';';
+						separatorString += ";";
 					}
 					leadingString += `${this.kind} `;
 					isInDeclaration = true;
 				}
 			}
 			if (renderedContentEnd === lastSeparatorPos + 1) {
-				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString + leadingString);
+				code.overwrite(
+					lastSeparatorPos,
+					renderedContentEnd,
+					separatorString + leadingString,
+				);
 			} else {
-				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.overwrite(
+					lastSeparatorPos,
+					lastSeparatorPos + 1,
+					separatorString,
+				);
 				code.appendLeft(renderedContentEnd, leadingString);
 			}
 			actualContentEnd = contentEnd;
@@ -237,7 +287,7 @@ export default class VariableDeclaration extends NodeBase {
 			actualContentEnd!,
 			renderedContentEnd,
 			aggregatedSystemExports,
-			options
+			options,
 		);
 	}
 }
@@ -247,21 +297,25 @@ function gatherSystemExportsAndGetSingleExport(
 		node: VariableDeclarator;
 	}[],
 	options: RenderOptions,
-	aggregatedSystemExports: Variable[]
+	aggregatedSystemExports: Variable[],
 ): Variable | null {
 	let singleSystemExport: Variable | null = null;
-	if (options.format === 'system') {
+	if (options.format === "system") {
 		for (const { node } of separatedNodes) {
 			if (
 				node.id instanceof Identifier &&
 				node.init &&
 				aggregatedSystemExports.length === 0 &&
-				options.exportNamesByVariable.get(node.id.variable!)?.length === 1
+				options.exportNamesByVariable.get(node.id.variable!)?.length ===
+					1
 			) {
 				singleSystemExport = node.id.variable!;
 				aggregatedSystemExports.push(singleSystemExport);
 			} else {
-				node.id.addExportedVariables(aggregatedSystemExports, options.exportNamesByVariable);
+				node.id.addExportedVariables(
+					aggregatedSystemExports,
+					options.exportNamesByVariable,
+				);
 			}
 		}
 		if (aggregatedSystemExports.length > 1) {

@@ -1,19 +1,20 @@
-import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { NormalizedOutputOptions } from '../rollup/types';
-import { isLegal } from '../utils/identifierHelpers';
-import { LOGLEVEL_WARN } from '../utils/logging';
+import type { Bundle as MagicStringBundle } from "magic-string";
+
+import type { NormalizedOutputOptions } from "../rollup/types";
+import { isLegal } from "../utils/identifierHelpers";
+import { LOGLEVEL_WARN } from "../utils/logging";
 import {
 	error,
 	logIllegalIdentifierAsName,
-	logMissingNameOptionForIifeExport
-} from '../utils/logs';
-import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
-import getInteropBlock from './shared/getInteropBlock';
-import { keypath } from './shared/sanitize';
-import setupNamespace from './shared/setupNamespace';
-import trimEmptyImports from './shared/trimEmptyImports';
-import warnOnBuiltins from './shared/warnOnBuiltins';
-import type { FinaliserOptions } from './index';
+	logMissingNameOptionForIifeExport,
+} from "../utils/logs";
+import type { FinaliserOptions } from "./index";
+import { getExportBlock, getNamespaceMarkers } from "./shared/getExportBlock";
+import getInteropBlock from "./shared/getInteropBlock";
+import { keypath } from "./shared/sanitize";
+import setupNamespace from "./shared/setupNamespace";
+import trimEmptyImports from "./shared/trimEmptyImports";
+import warnOnBuiltins from "./shared/warnOnBuiltins";
 
 export default function iife(
 	magicString: MagicStringBundle,
@@ -28,7 +29,7 @@ export default function iife(
 		namedExportsMode,
 		log,
 		outro,
-		snippets
+		snippets,
 	}: FinaliserOptions,
 	{
 		compact,
@@ -40,11 +41,11 @@ export default function iife(
 		interop,
 		name,
 		generatedCode: { symbols },
-		strict
-	}: NormalizedOutputOptions
+		strict,
+	}: NormalizedOutputOptions,
 ): void {
 	const { _, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
-	const isNamespaced = name && name.includes('.');
+	const isNamespaced = name && name.includes(".");
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
@@ -54,8 +55,8 @@ export default function iife(
 	warnOnBuiltins(log, dependencies);
 
 	const external = trimEmptyImports(dependencies);
-	const deps = external.map(dep => dep.globalName || 'null');
-	const parameters = external.map(m => m.name);
+	const deps = external.map((dep) => dep.globalName || "null");
+	const parameters = external.map((m) => m.name);
 
 	if (hasExports && !name) {
 		log(LOGLEVEL_WARN, logMissingNameOptionForIifeExport());
@@ -66,17 +67,17 @@ export default function iife(
 			deps.unshift(
 				`this${keypath(name!, getPropertyAccess)}${_}=${_}this${keypath(
 					name!,
-					getPropertyAccess
-				)}${_}||${_}{}`
+					getPropertyAccess,
+				)}${_}||${_}{}`,
 			);
-			parameters.unshift('exports');
+			parameters.unshift("exports");
 		} else {
-			deps.unshift('{}');
-			parameters.unshift('exports');
+			deps.unshift("{}");
+			parameters.unshift("exports");
 		}
 	}
 
-	const useStrict = strict ? `${t}'use strict';${n}` : '';
+	const useStrict = strict ? `${t}'use strict';${n}` : "";
 	const interopBlock = getInteropBlock(
 		dependencies,
 		interop,
@@ -85,22 +86,26 @@ export default function iife(
 		symbols,
 		accessedGlobals,
 		t,
-		snippets
+		snippets,
 	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
 	let wrapperIntro = `(${getNonArrowFunctionIntro(parameters, {
 		isAsync: false,
-		name: null
+		name: null,
 	})}{${n}${useStrict}${n}`;
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =
-				(useVariableAssignment ? `var ${name}` : `this${keypath(name, getPropertyAccess)}`) +
+				(useVariableAssignment
+					? `var ${name}`
+					: `this${keypath(name, getPropertyAccess)}`) +
 				`${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {
-			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact) + wrapperIntro;
+			wrapperIntro =
+				setupNamespace(name!, "this", globals, snippets, compact) +
+				wrapperIntro;
 		}
 	}
 
@@ -116,13 +121,14 @@ export default function iife(
 		interop,
 		snippets,
 		t,
-		externalLiveBindings
+		externalLiveBindings,
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		esModule === true || (esModule === 'if-default-prop' && hasDefaultExport),
+		esModule === true ||
+			(esModule === "if-default-prop" && hasDefaultExport),
 		symbols,
-		snippets
+		snippets,
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;

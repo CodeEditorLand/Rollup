@@ -1,26 +1,30 @@
-import type { HasEffectsContext } from './ExecutionContext';
-import type { NodeInteraction, NodeInteractionCalled } from './NodeInteractions';
+import type { HasEffectsContext } from "./ExecutionContext";
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
-	NODE_INTERACTION_UNKNOWN_CALL
-} from './NodeInteractions';
-import type { LiteralValue } from './nodes/Literal';
+	NODE_INTERACTION_UNKNOWN_CALL,
+	type NodeInteraction,
+	type NodeInteractionCalled,
+} from "./NodeInteractions";
+import type { LiteralValue } from "./nodes/Literal";
 import {
 	ExpressionEntity,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_RETURN_EXPRESSION
-} from './nodes/shared/Expression';
+	UNKNOWN_RETURN_EXPRESSION,
+} from "./nodes/shared/Expression";
 import {
 	EMPTY_PATH,
+	SHARED_RECURSION_TRACKER,
 	type ObjectPath,
 	type ObjectPathKey,
-	SHARED_RECURSION_TRACKER
-} from './utils/PathTracker';
+} from "./utils/PathTracker";
 
 export interface MemberDescription {
 	hasEffectsWhenCalled:
-		| ((interaction: NodeInteractionCalled, context: HasEffectsContext) => boolean)
+		| ((
+				interaction: NodeInteractionCalled,
+				context: HasEffectsContext,
+		  ) => boolean)
 		| null;
 	returns: ExpressionEntity;
 }
@@ -35,7 +39,7 @@ interface RawMemberDescription {
 
 function assembleMemberDescriptions(
 	memberDescriptions: { [key: string]: RawMemberDescription },
-	inheritedDescriptions: MemberDescriptions | null = null
+	inheritedDescriptions: MemberDescriptions | null = null,
 ): MemberDescriptions {
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
@@ -50,17 +54,20 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity =
 const returnsUnknown: RawMemberDescription = {
 	value: {
 		hasEffectsWhenCalled: null,
-		returns: UNKNOWN_EXPRESSION
-	}
+		returns: UNKNOWN_EXPRESSION,
+	},
 };
 
 export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 	new (class UnknownBoolean extends ExpressionEntity {
 		getReturnExpressionWhenCalledAtPath(
-			path: ObjectPath
+			path: ObjectPath,
 		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
-				return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
+				return getMemberReturnExpressionWhenCalled(
+					literalBooleanMembers,
+					path[0],
+				);
 			}
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
@@ -68,13 +75,18 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
 			interaction: NodeInteraction,
-			context: HasEffectsContext
+			context: HasEffectsContext,
 		): boolean {
 			if (interaction.type === INTERACTION_ACCESSED) {
 				return path.length > 1;
 			}
 			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
-				return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], interaction, context);
+				return hasMemberEffectWhenCalled(
+					literalBooleanMembers,
+					path[0],
+					interaction,
+					context,
+				);
 			}
 			return true;
 		}
@@ -83,17 +95,20 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity =
 const returnsBoolean: RawMemberDescription = {
 	value: {
 		hasEffectsWhenCalled: null,
-		returns: UNKNOWN_LITERAL_BOOLEAN
-	}
+		returns: UNKNOWN_LITERAL_BOOLEAN,
+	},
 };
 
 export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 	new (class UnknownNumber extends ExpressionEntity {
 		getReturnExpressionWhenCalledAtPath(
-			path: ObjectPath
+			path: ObjectPath,
 		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
-				return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
+				return getMemberReturnExpressionWhenCalled(
+					literalNumberMembers,
+					path[0],
+				);
 			}
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
@@ -101,13 +116,18 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
 			interaction: NodeInteraction,
-			context: HasEffectsContext
+			context: HasEffectsContext,
 		): boolean {
 			if (interaction.type === INTERACTION_ACCESSED) {
 				return path.length > 1;
 			}
 			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
-				return hasMemberEffectWhenCalled(literalNumberMembers, path[0], interaction, context);
+				return hasMemberEffectWhenCalled(
+					literalNumberMembers,
+					path[0],
+					interaction,
+					context,
+				);
 			}
 			return true;
 		}
@@ -116,17 +136,20 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity =
 const returnsNumber: RawMemberDescription = {
 	value: {
 		hasEffectsWhenCalled: null,
-		returns: UNKNOWN_LITERAL_NUMBER
-	}
+		returns: UNKNOWN_LITERAL_NUMBER,
+	},
 };
 
 export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 	new (class UnknownString extends ExpressionEntity {
 		getReturnExpressionWhenCalledAtPath(
-			path: ObjectPath
+			path: ObjectPath,
 		): [expression: ExpressionEntity, isPure: boolean] {
 			if (path.length === 1) {
-				return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
+				return getMemberReturnExpressionWhenCalled(
+					literalStringMembers,
+					path[0],
+				);
 			}
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
@@ -134,13 +157,18 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 		hasEffectsOnInteractionAtPath(
 			path: ObjectPath,
 			interaction: NodeInteraction,
-			context: HasEffectsContext
+			context: HasEffectsContext,
 		): boolean {
 			if (interaction.type === INTERACTION_ACCESSED) {
 				return path.length > 1;
 			}
 			if (interaction.type === INTERACTION_CALLED && path.length === 1) {
-				return hasMemberEffectWhenCalled(literalStringMembers, path[0], interaction, context);
+				return hasMemberEffectWhenCalled(
+					literalStringMembers,
+					path[0],
+					interaction,
+					context,
+				);
 			}
 			return true;
 		}
@@ -149,8 +177,8 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity =
 const returnsString: RawMemberDescription = {
 	value: {
 		hasEffectsWhenCalled: null,
-		returns: UNKNOWN_LITERAL_STRING
-	}
+		returns: UNKNOWN_LITERAL_STRING,
+	},
 };
 
 const stringReplace: RawMemberDescription = {
@@ -159,18 +187,22 @@ const stringReplace: RawMemberDescription = {
 			const argument1 = args[2];
 			return (
 				args.length < 3 ||
-				(typeof argument1.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, {
-					deoptimizeCache() {}
-				}) === 'symbol' &&
+				(typeof argument1.getLiteralValueAtPath(
+					EMPTY_PATH,
+					SHARED_RECURSION_TRACKER,
+					{
+						deoptimizeCache() {},
+					},
+				) === "symbol" &&
 					argument1.hasEffectsOnInteractionAtPath(
 						EMPTY_PATH,
 						NODE_INTERACTION_UNKNOWN_CALL,
-						context
+						context,
 					))
 			);
 		},
-		returns: UNKNOWN_LITERAL_STRING
-	}
+		returns: UNKNOWN_LITERAL_STRING,
+	},
 };
 
 const objectMembers: MemberDescriptions = assembleMemberDescriptions({
@@ -179,14 +211,14 @@ const objectMembers: MemberDescriptions = assembleMemberDescriptions({
 	propertyIsEnumerable: returnsBoolean,
 	toLocaleString: returnsString,
 	toString: returnsString,
-	valueOf: returnsUnknown
+	valueOf: returnsUnknown,
 });
 
 const literalBooleanMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
-		valueOf: returnsBoolean
+		valueOf: returnsBoolean,
 	},
-	objectMembers
+	objectMembers,
 );
 
 const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
@@ -195,9 +227,9 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 		toFixed: returnsString,
 		toLocaleString: returnsString,
 		toPrecision: returnsString,
-		valueOf: returnsNumber
+		valueOf: returnsNumber,
 	},
-	objectMembers
+	objectMembers,
 );
 
 /**
@@ -208,80 +240,81 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 const literalRegExpMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		exec: returnsUnknown,
-		test: returnsBoolean
+		test: returnsBoolean,
 	},
-	objectMembers
+	objectMembers,
 );
 
-export const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
-	{
-		anchor: returnsString,
+export const literalStringMembers: MemberDescriptions =
+	assembleMemberDescriptions(
+		{
+			anchor: returnsString,
 
-		at: returnsUnknown,
-		big: returnsString,
-		blink: returnsString,
-		bold: returnsString,
-		charAt: returnsString,
-		charCodeAt: returnsNumber,
-		codePointAt: returnsUnknown,
-		concat: returnsString,
-		endsWith: returnsBoolean,
-		fixed: returnsString,
-		fontcolor: returnsString,
-		fontsize: returnsString,
-		includes: returnsBoolean,
-		indexOf: returnsNumber,
-		italics: returnsString,
-		lastIndexOf: returnsNumber,
-		link: returnsString,
-		localeCompare: returnsNumber,
-		match: returnsUnknown,
-		matchAll: returnsUnknown,
-		normalize: returnsString,
-		padEnd: returnsString,
-		padStart: returnsString,
-		repeat: returnsString,
-		replace: stringReplace,
-		replaceAll: stringReplace,
-		search: returnsNumber,
-		slice: returnsString,
-		small: returnsString,
-		split: returnsUnknown,
-		startsWith: returnsBoolean,
-		strike: returnsString,
-		sub: returnsString,
-		substr: returnsString,
-		substring: returnsString,
-		sup: returnsString,
-		toLocaleLowerCase: returnsString,
-		toLocaleUpperCase: returnsString,
-		toLowerCase: returnsString,
-		toString: returnsString, // overrides the toString() method of the Object object; it does not inherit Object.prototype.toString()
-		toUpperCase: returnsString,
-		trim: returnsString,
-		trimEnd: returnsString,
-		trimLeft: returnsString,
-		trimRight: returnsString,
-		trimStart: returnsString,
-		valueOf: returnsString
-	},
-	objectMembers
-);
+			at: returnsUnknown,
+			big: returnsString,
+			blink: returnsString,
+			bold: returnsString,
+			charAt: returnsString,
+			charCodeAt: returnsNumber,
+			codePointAt: returnsUnknown,
+			concat: returnsString,
+			endsWith: returnsBoolean,
+			fixed: returnsString,
+			fontcolor: returnsString,
+			fontsize: returnsString,
+			includes: returnsBoolean,
+			indexOf: returnsNumber,
+			italics: returnsString,
+			lastIndexOf: returnsNumber,
+			link: returnsString,
+			localeCompare: returnsNumber,
+			match: returnsUnknown,
+			matchAll: returnsUnknown,
+			normalize: returnsString,
+			padEnd: returnsString,
+			padStart: returnsString,
+			repeat: returnsString,
+			replace: stringReplace,
+			replaceAll: stringReplace,
+			search: returnsNumber,
+			slice: returnsString,
+			small: returnsString,
+			split: returnsUnknown,
+			startsWith: returnsBoolean,
+			strike: returnsString,
+			sub: returnsString,
+			substr: returnsString,
+			substring: returnsString,
+			sup: returnsString,
+			toLocaleLowerCase: returnsString,
+			toLocaleUpperCase: returnsString,
+			toLowerCase: returnsString,
+			toString: returnsString, // overrides the toString() method of the Object object; it does not inherit Object.prototype.toString()
+			toUpperCase: returnsString,
+			trim: returnsString,
+			trimEnd: returnsString,
+			trimLeft: returnsString,
+			trimRight: returnsString,
+			trimStart: returnsString,
+			valueOf: returnsString,
+		},
+		objectMembers,
+	);
 
-export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(
-	value: T
-): MemberDescriptions {
+export function getLiteralMembersForValue<
+	T extends LiteralValue = LiteralValue,
+>(value: T): MemberDescriptions {
 	if (value instanceof RegExp) {
 		return literalRegExpMembers;
 	}
 	switch (typeof value) {
-		case 'boolean': {
+		case "boolean": {
 			return literalBooleanMembers;
 		}
-		case 'number': {
+		case "number": {
 			return literalNumberMembers;
 		}
-		case 'string': {
+		case "string": {
 			return literalStringMembers;
 		}
 	}
@@ -292,18 +325,22 @@ export function hasMemberEffectWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
 	interaction: NodeInteractionCalled,
-	context: HasEffectsContext
+	context: HasEffectsContext,
 ): boolean {
-	if (typeof memberName !== 'string' || !members[memberName]) {
+	if (typeof memberName !== "string" || !members[memberName]) {
 		return true;
 	}
-	return members[memberName].hasEffectsWhenCalled?.(interaction, context) || false;
+	return (
+		members[memberName].hasEffectsWhenCalled?.(interaction, context) ||
+		false
+	);
 }
 
 export function getMemberReturnExpressionWhenCalled(
 	members: MemberDescriptions,
-	memberName: ObjectPathKey
+	memberName: ObjectPathKey,
 ): [expression: ExpressionEntity, isPure: boolean] {
-	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_RETURN_EXPRESSION;
+	if (typeof memberName !== "string" || !members[memberName])
+		return UNKNOWN_RETURN_EXPRESSION;
 	return [members[memberName].returns, false];
 }

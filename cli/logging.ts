@@ -1,16 +1,17 @@
-import process from 'node:process';
-import type { RollupError } from '../src/rollup/types';
-import { bold, cyan, dim, red } from '../src/utils/colors';
-import relativeId from '../src/utils/relativeId';
+import process from "node:process";
+
+import type { RollupError } from "../src/rollup/types";
+import { bold, cyan, dim, red } from "../src/utils/colors";
+import relativeId from "../src/utils/relativeId";
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = (...parameters: readonly unknown[]) =>
-	process.stderr.write(`${parameters.join('')}\n`);
+	process.stderr.write(`${parameters.join("")}\n`);
 
 export function handleError(error: RollupError, recover = false): void {
 	const name = error.name || (error.cause as Error)?.name;
-	const nameSection = name ? `${name}: ` : '';
-	const pluginSection = error.plugin ? `(plugin ${error.plugin}) ` : '';
+	const nameSection = name ? `${name}: ` : "";
+	const pluginSection = error.plugin ? `(plugin ${error.plugin}) ` : "";
 	const message = `${pluginSection}${nameSection}${error.message}`;
 
 	const outputLines = [bold(red(`[!] ${bold(message.toString())}`))];
@@ -21,7 +22,7 @@ export function handleError(error: RollupError, recover = false): void {
 
 	if (error.loc) {
 		outputLines.push(
-			`${relativeId((error.loc.file || error.id)!)} (${error.loc.line}:${error.loc.column})`
+			`${relativeId((error.loc.file || error.id)!)} (${error.loc.line}:${error.loc.column})`,
 		);
 	} else if (error.id) {
 		outputLines.push(relativeId(error.id));
@@ -32,11 +33,13 @@ export function handleError(error: RollupError, recover = false): void {
 	}
 
 	if (error.stack) {
-		outputLines.push(dim(error.stack?.replace(`${nameSection}${error.message}\n`, '')));
+		outputLines.push(
+			dim(error.stack?.replace(`${nameSection}${error.message}\n`, "")),
+		);
 	}
 
-	outputLines.push('', '');
-	stderr(outputLines.join('\n'));
+	outputLines.push("", "");
+	stderr(outputLines.join("\n"));
 
 	if (!recover) process.exit(1);
 }

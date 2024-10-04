@@ -1,28 +1,34 @@
 /* eslint sort-keys: "off" */
 
-import { doNothing } from '../../../utils/doNothing';
-import type { HasEffectsContext } from '../../ExecutionContext';
-import type { NodeInteractionCalled } from '../../NodeInteractions';
+import { doNothing } from "../../../utils/doNothing";
+import type { HasEffectsContext } from "../../ExecutionContext";
 import {
 	NODE_INTERACTION_UNKNOWN_ACCESS,
-	NODE_INTERACTION_UNKNOWN_ASSIGNMENT
-} from '../../NodeInteractions';
-import type { ObjectPath } from '../../utils/PathTracker';
+	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
+	type NodeInteractionCalled,
+} from "../../NodeInteractions";
 import {
 	SymbolToStringTag,
 	UNKNOWN_NON_ACCESSOR_PATH,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
-import ArrayExpression from '../ArrayExpression';
-import type { LiteralValueOrUnknown } from './Expression';
-import { ExpressionEntity, UnknownTruthyValue } from './Expression';
+	UNKNOWN_PATH,
+	type ObjectPath,
+} from "../../utils/PathTracker";
+import ArrayExpression from "../ArrayExpression";
+import {
+	ExpressionEntity,
+	UnknownTruthyValue,
+	type LiteralValueOrUnknown,
+} from "./Expression";
 
-const ValueProperties = Symbol('Value Properties');
+const ValueProperties = Symbol("Value Properties");
 
 interface ValueDescription {
 	deoptimizeArgumentsOnCall(interaction: NodeInteractionCalled): void;
 	getLiteralValue(): LiteralValueOrUnknown;
-	hasEffectsWhenCalled(interaction: NodeInteractionCalled, context: HasEffectsContext): boolean;
+	hasEffectsWhenCalled(
+		interaction: NodeInteractionCalled,
+		context: HasEffectsContext,
+	): boolean;
 }
 
 interface GlobalDescription {
@@ -38,13 +44,13 @@ const returnTrue = () => true;
 const PURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getTruthyLiteralValue,
-	hasEffectsWhenCalled: returnFalse
+	hasEffectsWhenCalled: returnFalse,
 };
 
 const IMPURE: ValueDescription = {
 	deoptimizeArgumentsOnCall: doNothing,
 	getLiteralValue: getTruthyLiteralValue,
-	hasEffectsWhenCalled: returnTrue
+	hasEffectsWhenCalled: returnTrue,
 };
 
 const PURE_WITH_ARRAY: ValueDescription = {
@@ -52,7 +58,7 @@ const PURE_WITH_ARRAY: ValueDescription = {
 	getLiteralValue: getTruthyLiteralValue,
 	hasEffectsWhenCalled({ args }) {
 		return args.length > 1 && !(args[1] instanceof ArrayExpression);
-	}
+	},
 };
 
 const GETTER_ACCESS: ValueDescription = {
@@ -65,36 +71,38 @@ const GETTER_ACCESS: ValueDescription = {
 			firstArgument.hasEffectsOnInteractionAtPath(
 				UNKNOWN_PATH,
 				NODE_INTERACTION_UNKNOWN_ACCESS,
-				context
+				context,
 			)
 		);
-	}
+	},
 };
 
 // We use shortened variables to reduce file size here
 /* OBJECT */
 const O: GlobalDescription = {
 	__proto__: null,
-	[ValueProperties]: IMPURE
+	[ValueProperties]: IMPURE,
 };
 
 /* PURE FUNCTION */
 const PF: GlobalDescription = {
 	__proto__: null,
-	[ValueProperties]: PURE
+	[ValueProperties]: PURE,
 };
 
 /* PURE FUNCTION IF FIRST ARG DOES NOT CONTAIN A GETTER */
 const PF_NO_GETTER: GlobalDescription = {
 	__proto__: null,
-	[ValueProperties]: GETTER_ACCESS
+	[ValueProperties]: GETTER_ACCESS,
 };
 
 /* FUNCTION THAT MUTATES FIRST ARG WITHOUT TRIGGERING ACCESSORS */
 const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: {
-		deoptimizeArgumentsOnCall({ args: [, firstArgument] }: NodeInteractionCalled) {
+		deoptimizeArgumentsOnCall({
+			args: [, firstArgument],
+		}: NodeInteractionCalled) {
 			firstArgument?.deoptimizePath(UNKNOWN_PATH);
 		},
 		getLiteralValue: getTruthyLiteralValue,
@@ -104,31 +112,31 @@ const MUTATES_ARG_WITHOUT_ACCESSOR: GlobalDescription = {
 				args[1].hasEffectsOnInteractionAtPath(
 					UNKNOWN_NON_ACCESSOR_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-					context
+					context,
 				)
 			);
-		}
-	}
+		},
+	},
 };
 
 /* CONSTRUCTOR */
 const C: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: IMPURE,
-	prototype: O
+	prototype: O,
 };
 
 /* PURE CONSTRUCTOR */
 const PC: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE,
-	prototype: O
+	prototype: O,
 };
 
 const PC_WITH_ARRAY = {
 	__proto__: null,
 	[ValueProperties]: PURE_WITH_ARRAY,
-	prototype: O
+	prototype: O,
 };
 
 const ARRAY_TYPE: GlobalDescription = {
@@ -136,13 +144,13 @@ const ARRAY_TYPE: GlobalDescription = {
 	[ValueProperties]: PURE,
 	from: O,
 	of: PF,
-	prototype: O
+	prototype: O,
 };
 
 const INTL_MEMBER: GlobalDescription = {
 	__proto__: null,
 	[ValueProperties]: PURE,
-	supportedLocalesOf: PC
+	supportedLocalesOf: PC,
 };
 
 const knownGlobals: GlobalDescription = {
@@ -161,13 +169,13 @@ const knownGlobals: GlobalDescription = {
 		from: O,
 		isArray: PF,
 		of: PF,
-		prototype: O
+		prototype: O,
 	},
 	ArrayBuffer: {
 		__proto__: null,
 		[ValueProperties]: PURE,
 		isView: PF,
-		prototype: O
+		prototype: O,
 	},
 	Atomics: O,
 	BigInt: C,
@@ -182,7 +190,7 @@ const knownGlobals: GlobalDescription = {
 		now: PF,
 		parse: PF,
 		prototype: O,
-		UTC: PF
+		UTC: PF,
 	},
 	decodeURI: PF,
 	decodeURIComponent: PF,
@@ -242,7 +250,7 @@ const knownGlobals: GlobalDescription = {
 		sqrt: PF,
 		tan: PF,
 		tanh: PF,
-		trunc: PF
+		trunc: PF,
 	},
 	NaN: O,
 	Number: {
@@ -254,7 +262,7 @@ const knownGlobals: GlobalDescription = {
 		isSafeInteger: PF,
 		parseFloat: PF,
 		parseInt: PF,
-		prototype: O
+		prototype: O,
 	},
 	Object: {
 		__proto__: null,
@@ -280,7 +288,7 @@ const knownGlobals: GlobalDescription = {
 		fromEntries: O,
 		entries: PF_NO_GETTER,
 		values: PF_NO_GETTER,
-		prototype: O
+		prototype: O,
 	},
 	parseFloat: PF,
 	parseInt: PF,
@@ -293,7 +301,7 @@ const knownGlobals: GlobalDescription = {
 		prototype: O,
 		race: O,
 		reject: O,
-		resolve: O
+		resolve: O,
 	},
 	propertyIsEnumerable: O,
 	Proxy: O,
@@ -309,7 +317,7 @@ const knownGlobals: GlobalDescription = {
 		fromCharCode: PF,
 		fromCodePoint: PF,
 		prototype: O,
-		raw: PF
+		raw: PF,
 	},
 	Symbol: {
 		__proto__: null,
@@ -324,9 +332,9 @@ const knownGlobals: GlobalDescription = {
 				getLiteralValue() {
 					return SymbolToStringTag;
 				},
-				hasEffectsWhenCalled: returnTrue
-			}
-		}
+				hasEffectsWhenCalled: returnTrue,
+			},
+		},
 	},
 	SyntaxError: PC,
 	toLocaleString: O,
@@ -369,7 +377,7 @@ const knownGlobals: GlobalDescription = {
 		timeEnd: C,
 		timeLog: C,
 		trace: C,
-		warn: C
+		warn: C,
 	},
 	Intl: {
 		__proto__: null,
@@ -382,7 +390,7 @@ const knownGlobals: GlobalDescription = {
 		NumberFormat: INTL_MEMBER,
 		PluralRules: INTL_MEMBER,
 		RelativeTimeFormat: INTL_MEMBER,
-		Segmenter: INTL_MEMBER
+		Segmenter: INTL_MEMBER,
 	},
 	setInterval: C,
 	setTimeout: C,
@@ -392,7 +400,7 @@ const knownGlobals: GlobalDescription = {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
 		prototype: O,
-		canParse: PF
+		canParse: PF,
 	},
 	URLSearchParams: C,
 
@@ -482,12 +490,12 @@ const knownGlobals: GlobalDescription = {
 		__proto__: null,
 		[ValueProperties]: {
 			deoptimizeArgumentsOnCall({ args }: NodeInteractionCalled) {
-				args[2]?.deoptimizePath(['detail']);
+				args[2]?.deoptimizePath(["detail"]);
 			},
 			getLiteralValue: getTruthyLiteralValue,
-			hasEffectsWhenCalled: returnFalse
+			hasEffectsWhenCalled: returnFalse,
 		},
-		prototype: O
+		prototype: O,
 	},
 	DataTransfer: C,
 	DataTransferItem: C,
@@ -988,17 +996,17 @@ const knownGlobals: GlobalDescription = {
 	XPathEvaluator: C,
 	XPathExpression: C,
 	XPathResult: C,
-	XSLTProcessor: C
+	XSLTProcessor: C,
 };
 
-for (const global of ['window', 'global', 'self', 'globalThis']) {
+for (const global of ["window", "global", "self", "globalThis"]) {
 	knownGlobals[global] = knownGlobals;
 }
 
 export function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
 	let currentGlobal: GlobalDescription | null = knownGlobals;
 	for (const pathSegment of path) {
-		if (typeof pathSegment !== 'string') {
+		if (typeof pathSegment !== "string") {
 			return null;
 		}
 		currentGlobal = currentGlobal[pathSegment];

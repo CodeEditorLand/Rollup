@@ -1,8 +1,12 @@
-import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
-import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import * as NodeType from './NodeType';
-import ClassNode from './shared/ClassNode';
+import type MagicString from "magic-string";
+
+import { BLANK } from "../../utils/blank";
+import type {
+	NodeRenderOptions,
+	RenderOptions,
+} from "../../utils/renderHelpers";
+import * as NodeType from "./NodeType";
+import ClassNode from "./shared/ClassNode";
 
 export default class ClassExpression extends ClassNode {
 	declare type: NodeType.tClassExpression;
@@ -10,12 +14,12 @@ export default class ClassExpression extends ClassNode {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
+		{ renderedSurroundingElement }: NodeRenderOptions = BLANK,
 	): void {
 		super.render(code, options);
 		if (renderedSurroundingElement === NodeType.ExpressionStatement) {
-			code.appendRight(this.start, '(');
-			code.prependLeft(this.end, ')');
+			code.appendRight(this.start, "(");
+			code.prependLeft(this.end, ")");
 		}
 	}
 }

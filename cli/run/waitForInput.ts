@@ -1,6 +1,10 @@
-import type { NormalizedInputOptions, Plugin, PluginContext } from '../../src/rollup/types';
-import { bold } from '../../src/utils/colors';
-import { stderr } from '../logging';
+import type {
+	NormalizedInputOptions,
+	Plugin,
+	PluginContext,
+} from "../../src/rollup/types";
+import { bold } from "../../src/utils/colors";
+import { stderr } from "../logging";
 
 export function waitForInputPlugin(): Plugin {
 	return {
@@ -17,13 +21,15 @@ export function waitForInputPlugin(): Plugin {
 							stderr(`waiting for input ${bold(specifier)}...`);
 							lastAwaitedSpecifier = specifier;
 						}
-						await new Promise(resolve => setTimeout(resolve, 500));
+						await new Promise((resolve) =>
+							setTimeout(resolve, 500),
+						);
 						continue checkSpecifiers;
 					}
 				}
 				break;
 			}
 		},
-		name: 'wait-for-input'
+		name: "wait-for-input",
 	};
 }

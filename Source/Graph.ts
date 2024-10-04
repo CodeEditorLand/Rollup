@@ -1,9 +1,10 @@
-import flru from 'flru';
-import type ExternalModule from './ExternalModule';
-import Module from './Module';
-import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
-import GlobalScope from './ast/scopes/GlobalScope';
-import { PathTracker } from './ast/utils/PathTracker';
+import flru from "flru";
+
+import GlobalScope from "./ast/scopes/GlobalScope";
+import { PathTracker } from "./ast/utils/PathTracker";
+import type ExternalModule from "./ExternalModule";
+import Module from "./Module";
+import { ModuleLoader, type UnresolvedModule } from "./ModuleLoader";
 import type {
 	AstNode,
 	ModuleInfo,
@@ -12,34 +13,33 @@ import type {
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache,
-	WatchChangeHook
-} from './rollup/types';
-import { PluginDriver } from './utils/PluginDriver';
-import Queue from './utils/Queue';
-import { BuildPhase } from './utils/buildPhase';
-import { analyseModuleExecution } from './utils/executionOrder';
-import { LOGLEVEL_WARN } from './utils/logging';
+	WatchChangeHook,
+} from "./rollup/types";
+import { BuildPhase } from "./utils/buildPhase";
+import { analyseModuleExecution } from "./utils/executionOrder";
+import { LOGLEVEL_WARN } from "./utils/logging";
 import {
 	error,
 	logCircularDependency,
 	logImplicitDependantIsNotIncluded,
-	logMissingExport
-} from './utils/logs';
-import type { PureFunctions } from './utils/pureFunctions';
-import { getPureFunctions } from './utils/pureFunctions';
-import { timeEnd, timeStart } from './utils/timers';
-import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
+	logMissingExport,
+} from "./utils/logs";
+import { PluginDriver } from "./utils/PluginDriver";
+import { getPureFunctions, type PureFunctions } from "./utils/pureFunctions";
+import Queue from "./utils/Queue";
+import { timeEnd, timeStart } from "./utils/timers";
+import { markModuleAndImpureDependenciesAsExecuted } from "./utils/traverseStaticDependencies";
 
 function normalizeEntryModules(
-	entryModules: readonly string[] | Record<string, string>
+	entryModules: readonly string[] | Record<string, string>,
 ): UnresolvedModule[] {
 	if (Array.isArray(entryModules)) {
-		return entryModules.map(id => ({
+		return entryModules.map((id) => ({
 			fileName: null,
 			id,
 			implicitlyLoadedAfter: [],
 			importer: undefined,
-			name: null
+			name: null,
 		}));
 	}
 	return Object.entries(entryModules).map(([name, id]) => ({
@@ -47,7 +47,7 @@ function normalizeEntryModules(
 		id,
 		implicitlyLoadedAfter: [],
 		importer: undefined,
-		name
+		name,
 	}));
 }
 
@@ -74,11 +74,12 @@ export default class Graph {
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
-		watcher: RollupWatcher | null
+		watcher: RollupWatcher | null,
 	) {
 		if (options.cache !== false) {
 			if (options.cache?.modules) {
-				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
+				for (const module of options.cache.modules)
+					this.cachedModules.set(module.id, module);
 			}
 			this.pluginCache = options.cache?.plugins || Object.create(null);
 
@@ -92,30 +93,41 @@ export default class Graph {
 		if (watcher) {
 			this.watchMode = true;
 			const handleChange = (...parameters: Parameters<WatchChangeHook>) =>
-				this.pluginDriver.hookParallel('watchChange', parameters);
-			const handleClose = () => this.pluginDriver.hookParallel('closeWatcher', []);
-			watcher.onCurrentRun('change', handleChange);
-			watcher.onCurrentRun('close', handleClose);
+				this.pluginDriver.hookParallel("watchChange", parameters);
+			const handleClose = () =>
+				this.pluginDriver.hookParallel("closeWatcher", []);
+			watcher.onCurrentRun("change", handleChange);
+			watcher.onCurrentRun("close", handleClose);
 		}
-		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
+		this.pluginDriver = new PluginDriver(
+			this,
+			options,
+			options.plugins,
+			this.pluginCache,
+		);
+		this.moduleLoader = new ModuleLoader(
+			this,
+			this.modulesById,
+			this.options,
+			this.pluginDriver,
+		);
 		this.fileOperationQueue = new Queue(options.maxParallelFileOps);
 		this.pureFunctions = getPureFunctions(options);
 	}
 
 	async build(): Promise<void> {
-		timeStart('generate module graph', 2);
+		timeStart("generate module graph", 2);
 		await this.generateModuleGraph();
-		timeEnd('generate module graph', 2);
+		timeEnd("generate module graph", 2);
 
-		timeStart('sort and bind modules', 2);
+		timeStart("sort and bind modules", 2);
 		this.phase = BuildPhase.ANALYSE;
 		this.sortModules();
-		timeEnd('sort and bind modules', 2);
+		timeEnd("sort and bind modules", 2);
 
-		timeStart('mark included statements', 2);
+		timeStart("mark included statements", 2);
 		this.includeStatements();
-		timeEnd('mark included statements', 2);
+		timeEnd("mark included statements", 2);
 
 		this.phase = BuildPhase.GENERATE;
 	}
@@ -126,15 +138,16 @@ export default class Graph {
 			const cache = this.pluginCache[name];
 			let allDeleted = true;
 			for (const [key, value] of Object.entries(cache)) {
-				if (value[0] >= this.options.experimentalCacheExpiry) delete cache[key];
+				if (value[0] >= this.options.experimentalCacheExpiry)
+					delete cache[key];
 				else allDeleted = false;
 			}
 			if (allDeleted) delete this.pluginCache[name];
 		}
 
 		return {
-			modules: this.modules.map(module => module.toJSON()),
-			plugins: this.pluginCache
+			modules: this.modules.map((module) => module.toJSON()),
+			plugins: this.pluginCache,
 		};
 	}
 
@@ -145,10 +158,15 @@ export default class Graph {
 	};
 
 	private async generateModuleGraph(): Promise<void> {
-		({ entryModules: this.entryModules, implicitEntryModules: this.implicitEntryModules } =
-			await this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true));
+		({
+			entryModules: this.entryModules,
+			implicitEntryModules: this.implicitEntryModules,
+		} = await this.moduleLoader.addEntryModules(
+			normalizeEntryModules(this.options.input),
+			true,
+		));
 		if (this.entryModules.length === 0) {
-			throw new Error('You must supply options.input to rollup');
+			throw new Error("You must supply options.input to rollup");
 		}
 		for (const module of this.modulesById.values()) {
 			if (module instanceof Module) {
@@ -160,7 +178,10 @@ export default class Graph {
 	}
 
 	private includeStatements(): void {
-		const entryModules = [...this.entryModules, ...this.implicitEntryModules];
+		const entryModules = [
+			...this.entryModules,
+			...this.implicitEntryModules,
+		];
 		for (const module of entryModules) {
 			markModuleAndImpureDependenciesAsExecuted(module);
 		}
@@ -171,7 +192,7 @@ export default class Graph {
 				this.needsTreeshakingPass = false;
 				for (const module of this.modules) {
 					if (module.isExecuted) {
-						if (module.info.moduleSideEffects === 'no-treeshake') {
+						if (module.info.moduleSideEffects === "no-treeshake") {
 							module.includeAllInBundle();
 						} else {
 							module.include();
@@ -193,7 +214,8 @@ export default class Graph {
 		} else {
 			for (const module of this.modules) module.includeAllInBundle();
 		}
-		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
+		for (const externalModule of this.externalModules)
+			externalModule.warnUnusedImports();
 		for (const module of this.implicitEntryModules) {
 			for (const dependant of module.implicitlyLoadedAfter) {
 				if (!(dependant.info.isEntry || dependant.isIncluded())) {
@@ -204,7 +226,9 @@ export default class Graph {
 	}
 
 	private sortModules(): void {
-		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
+		const { orderedModules, cyclePaths } = analyseModuleExecution(
+			this.entryModules,
+		);
 		for (const cyclePath of cyclePaths) {
 			this.options.onLog(LOGLEVEL_WARN, logCircularDependency(cyclePath));
 		}
@@ -219,13 +243,19 @@ export default class Graph {
 		for (const module of this.modules) {
 			for (const importDescription of module.importDescriptions.values()) {
 				if (
-					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)[0]
+					importDescription.name !== "*" &&
+					!importDescription.module.getVariableForExportName(
+						importDescription.name,
+					)[0]
 				) {
 					module.log(
 						LOGLEVEL_WARN,
-						logMissingExport(importDescription.name, module.id, importDescription.module.id),
-						importDescription.start
+						logMissingExport(
+							importDescription.name,
+							module.id,
+							importDescription.module.id,
+						),
+						importDescription.start,
 					);
 				}
 			}

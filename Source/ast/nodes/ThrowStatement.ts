@@ -1,8 +1,13 @@
-import type MagicString from 'magic-string';
-import type { RenderOptions } from '../../utils/renderHelpers';
-import { type InclusionContext } from '../ExecutionContext';
-import type * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
+import type MagicString from "magic-string";
+
+import type { RenderOptions } from "../../utils/renderHelpers";
+import { type InclusionContext } from "../ExecutionContext";
+import type * as NodeType from "./NodeType";
+import {
+	StatementBase,
+	type ExpressionNode,
+	type IncludeChildren,
+} from "./shared/Node";
 
 export default class ThrowStatement extends StatementBase {
 	declare argument: ExpressionNode;
@@ -12,7 +17,10 @@ export default class ThrowStatement extends StatementBase {
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		this.argument.include(context, includeChildrenRecursively);
 		context.brokenFlow = true;
@@ -21,7 +29,7 @@ export default class ThrowStatement extends StatementBase {
 	render(code: MagicString, options: RenderOptions): void {
 		this.argument.render(code, options, { preventASI: true });
 		if (this.argument.start === this.start + 5 /* 'throw'.length */) {
-			code.prependLeft(this.start + 5, ' ');
+			code.prependLeft(this.start + 5, " ");
 		}
 	}
 }

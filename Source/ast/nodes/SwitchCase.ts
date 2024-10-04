@@ -1,18 +1,19 @@
-import type MagicString from 'magic-string';
+import type MagicString from "magic-string";
+
 import {
 	findFirstOccurrenceOutsideComment,
+	renderStatementList,
 	type NodeRenderOptions,
 	type RenderOptions,
-	renderStatementList
-} from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type * as NodeType from './NodeType';
+} from "../../utils/renderHelpers";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import type * as NodeType from "./NodeType";
 import {
+	NodeBase,
 	type ExpressionNode,
 	type IncludeChildren,
-	NodeBase,
-	type StatementNode
-} from './shared/Node';
+	type StatementNode,
+} from "./shared/Node";
 
 export default class SwitchCase extends NodeBase {
 	declare consequent: readonly StatementNode[];
@@ -29,7 +30,10 @@ export default class SwitchCase extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		this.test?.include(context, includeChildrenRecursively);
 		for (const node of this.consequent) {
@@ -38,14 +42,30 @@ export default class SwitchCase extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		nodeRenderOptions?: NodeRenderOptions,
+	): void {
 		if (this.consequent.length > 0) {
 			this.test && this.test.render(code, options);
 			const testEnd = this.test
 				? this.test.end
-				: findFirstOccurrenceOutsideComment(code.original, 'default', this.start) + 7;
-			const consequentStart = findFirstOccurrenceOutsideComment(code.original, ':', testEnd) + 1;
-			renderStatementList(this.consequent, code, consequentStart, nodeRenderOptions!.end!, options);
+				: findFirstOccurrenceOutsideComment(
+						code.original,
+						"default",
+						this.start,
+					) + 7;
+			const consequentStart =
+				findFirstOccurrenceOutsideComment(code.original, ":", testEnd) +
+				1;
+			renderStatementList(
+				this.consequent,
+				code,
+				consequentStart,
+				nodeRenderOptions!.end!,
+				options,
+			);
 		} else {
 			super.render(code, options);
 		}

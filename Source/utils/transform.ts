@@ -1,5 +1,6 @@
-import MagicString, { SourceMap } from 'magic-string';
-import type Module from '../Module';
+import MagicString, { SourceMap } from "magic-string";
+
+import type Module from "../Module";
 import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -12,56 +13,65 @@ import type {
 	SourceDescription,
 	TransformModuleJSON,
 	TransformPluginContext,
-	TransformResult
-} from '../rollup/types';
-import { getTrackedPluginCache } from './PluginCache';
-import type { PluginDriver } from './PluginDriver';
-import { collapseSourcemap } from './collapseSourcemaps';
-import { decodedSourcemap } from './decodedSourcemap';
-import { LOGLEVEL_WARN } from './logging';
+	TransformResult,
+} from "../rollup/types";
+import { collapseSourcemap } from "./collapseSourcemaps";
+import { decodedSourcemap } from "./decodedSourcemap";
+import { LOGLEVEL_WARN } from "./logging";
 import {
 	augmentCodeLocation,
 	error,
 	logInvalidSetAssetSourceCall,
 	logNoTransformMapOrAstWithoutCode,
-	logPluginError
-} from './logs';
-import { normalizeLog } from './options/options';
+	logPluginError,
+} from "./logs";
+import { normalizeLog } from "./options/options";
+import { getTrackedPluginCache } from "./PluginCache";
+import type { PluginDriver } from "./PluginDriver";
 
 export default async function transform(
 	source: SourceDescription,
 	module: Module,
 	pluginDriver: PluginDriver,
-	log: LogHandler
+	log: LogHandler,
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
-	let originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
+	let originalSourcemap =
+		source.map === null ? null : decodedSourcemap(source.map);
 	const originalCode = source.code;
 	let ast = source.ast;
 	const transformDependencies: string[] = [];
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
-	let pluginName = '';
+	let pluginName = "";
 	let currentSource = source.code;
 
 	function transformReducer(
 		this: PluginContext,
 		previousCode: string,
 		result: TransformResult,
-		plugin: Plugin
+		plugin: Plugin,
 	): string {
 		let code: string;
-		let map: string | ExistingRawSourceMap | { mappings: '' } | null | undefined;
-		if (typeof result === 'string') {
+		let map:
+			| string
+			| ExistingRawSourceMap
+			| { mappings: "" }
+			| null
+			| undefined;
+		if (typeof result === "string") {
 			code = result;
-		} else if (result && typeof result === 'object') {
+		} else if (result && typeof result === "object") {
 			module.updateOptions(result);
 			if (result.code == null) {
 				if (result.map || result.ast) {
-					log(LOGLEVEL_WARN, logNoTransformMapOrAstWithoutCode(plugin.name));
+					log(
+						LOGLEVEL_WARN,
+						logNoTransformMapOrAstWithoutCode(plugin.name),
+					);
 				}
 				return previousCode;
 			}
@@ -74,10 +84,12 @@ export default async function transform(
 		// while 'undefined' gets the missing map warning
 		if (map !== null) {
 			sourcemapChain.push(
-				decodedSourcemap(typeof map === 'string' ? JSON.parse(map) : map) || {
+				decodedSourcemap(
+					typeof map === "string" ? JSON.parse(map) : map,
+				) || {
 					missing: true,
-					plugin: plugin.name
-				}
+					plugin: plugin.name,
+				},
 			);
 		}
 
@@ -92,7 +104,7 @@ export default async function transform(
 			log = normalizeLog(log);
 			if (pos) augmentCodeLocation(log, pos, currentSource, id);
 			log.id = id;
-			log.hook = 'transform';
+			log.hook = "transform";
 			handler(log);
 		};
 
@@ -100,7 +112,7 @@ export default async function transform(
 
 	try {
 		code = await pluginDriver.hookReduceArg0(
-			'transform',
+			"transform",
 			[currentSource, id],
 			transformReducer,
 			(pluginContext, plugin): TransformPluginContext => {
@@ -113,7 +125,10 @@ export default async function transform(
 					},
 					cache: customTransformCache
 						? pluginContext.cache
-						: getTrackedPluginCache(pluginContext.cache, useCustomTransformCache),
+						: getTrackedPluginCache(
+								pluginContext.cache,
+								useCustomTransformCache,
+							),
 					debug: getLogHandler(pluginContext.debug),
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);
@@ -121,12 +136,14 @@ export default async function transform(
 					},
 					error(
 						error_: RollupError | string,
-						pos?: number | { column: number; line: number }
+						pos?: number | { column: number; line: number },
 					): never {
-						if (typeof error_ === 'string') error_ = { message: error_ };
-						if (pos) augmentCodeLocation(error_, pos, currentSource, id);
+						if (typeof error_ === "string")
+							error_ = { message: error_ };
+						if (pos)
+							augmentCodeLocation(error_, pos, currentSource, id);
 						error_.id = id;
-						error_.hook = 'transform';
+						error_.hook = "transform";
 						return pluginContext.error(error_);
 					},
 					getCombinedSourcemap() {
@@ -135,11 +152,15 @@ export default async function transform(
 							originalCode,
 							originalSourcemap,
 							sourcemapChain,
-							log
+							log,
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);
-							return magicString.generateMap({ hires: true, includeContent: true, source: id });
+							return magicString.generateMap({
+								hires: true,
+								includeContent: true,
+								source: id,
+							});
 						}
 						if (originalSourcemap !== combinedMap) {
 							originalSourcemap = combinedMap;
@@ -148,19 +169,21 @@ export default async function transform(
 						return new SourceMap({
 							...combinedMap,
 							file: null as never,
-							sourcesContent: combinedMap.sourcesContent!
+							sourcesContent: combinedMap.sourcesContent!,
 						});
 					},
 					info: getLogHandler(pluginContext.info),
 					setAssetSource() {
 						return this.error(logInvalidSetAssetSourceCall());
 					},
-					warn: getLogHandler(pluginContext.warn)
+					warn: getLogHandler(pluginContext.warn),
 				};
-			}
+			},
 		);
 	} catch (error_: any) {
-		return error(logPluginError(error_, pluginName, { hook: 'transform', id }));
+		return error(
+			logPluginError(error_, pluginName, { hook: "transform", id }),
+		);
 	}
 
 	if (
@@ -176,6 +199,6 @@ export default async function transform(
 		originalCode,
 		originalSourcemap,
 		sourcemapChain,
-		transformDependencies
+		transformDependencies,
 	};
 }

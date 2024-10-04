@@ -1,11 +1,12 @@
-import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { NormalizedOutputOptions } from '../rollup/types';
-import getCompleteAmdId from './shared/getCompleteAmdId';
-import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
-import getInteropBlock from './shared/getInteropBlock';
-import updateExtensionForRelativeAmdId from './shared/updateExtensionForRelativeAmdId';
-import warnOnBuiltins from './shared/warnOnBuiltins';
-import type { FinaliserOptions } from './index';
+import type { Bundle as MagicStringBundle } from "magic-string";
+
+import type { NormalizedOutputOptions } from "../rollup/types";
+import type { FinaliserOptions } from "./index";
+import getCompleteAmdId from "./shared/getCompleteAmdId";
+import { getExportBlock, getNamespaceMarkers } from "./shared/getExportBlock";
+import getInteropBlock from "./shared/getInteropBlock";
+import updateExtensionForRelativeAmdId from "./shared/updateExtensionForRelativeAmdId";
+import warnOnBuiltins from "./shared/warnOnBuiltins";
 
 export default function amd(
 	magicString: MagicStringBundle,
@@ -23,7 +24,7 @@ export default function amd(
 		namedExportsMode,
 		log,
 		outro,
-		snippets
+		snippets,
 	}: FinaliserOptions,
 	{
 		amd,
@@ -32,14 +33,15 @@ export default function amd(
 		freeze,
 		generatedCode: { symbols },
 		interop,
-		strict
-	}: NormalizedOutputOptions
+		strict,
+	}: NormalizedOutputOptions,
 ): void {
 	warnOnBuiltins(log, dependencies);
 	const deps = dependencies.map(
-		m => `'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`
+		(m) =>
+			`'${updateExtensionForRelativeAmdId(m.importPath, amd.forceJsExtensionForImports)}'`,
 	);
-	const parameters = dependencies.map(m => m.name);
+	const parameters = dependencies.map((m) => m.name);
 	const { n, getNonArrowFunctionIntro, _ } = snippets;
 
 	if (namedExportsMode && hasExports) {
@@ -47,13 +49,13 @@ export default function amd(
 		deps.unshift(`'exports'`);
 	}
 
-	if (accessedGlobals.has('require')) {
-		parameters.unshift('require');
+	if (accessedGlobals.has("require")) {
+		parameters.unshift("require");
 		deps.unshift(`'require'`);
 	}
 
-	if (accessedGlobals.has('module')) {
-		parameters.unshift('module');
+	if (accessedGlobals.has("module")) {
+		parameters.unshift("module");
 		deps.unshift(`'module'`);
 	}
 
@@ -61,7 +63,7 @@ export default function amd(
 	const defineParameters =
 		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
 		(deps.length > 0 ? `[${deps.join(`,${_}`)}],${_}` : ``);
-	const useStrict = strict ? `${_}'use strict';` : '';
+	const useStrict = strict ? `${_}'use strict';` : "";
 
 	magicString.prepend(
 		`${intro}${getInteropBlock(
@@ -72,8 +74,8 @@ export default function amd(
 			symbols,
 			accessedGlobals,
 			t,
-			snippets
-		)}`
+			snippets,
+		)}`,
 	);
 
 	const exportBlock = getExportBlock(
@@ -83,13 +85,15 @@ export default function amd(
 		interop,
 		snippets,
 		t,
-		externalLiveBindings
+		externalLiveBindings,
 	);
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		isEntryFacade && (esModule === true || (esModule === 'if-default-prop' && hasDefaultExport)),
+		isEntryFacade &&
+			(esModule === true ||
+				(esModule === "if-default-prop" && hasDefaultExport)),
 		isModuleFacade && symbols,
-		snippets
+		snippets,
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;
@@ -100,10 +104,13 @@ export default function amd(
 		// factory function should be wrapped by parentheses to avoid lazy parsing,
 		// cf. https://v8.dev/blog/preparser#pife
 		.prepend(
-			`${amd.define}(${defineParameters}(${getNonArrowFunctionIntro(parameters, {
-				isAsync: false,
-				name: null
-			})}{${useStrict}${n}${n}`
+			`${amd.define}(${defineParameters}(${getNonArrowFunctionIntro(
+				parameters,
+				{
+					isAsync: false,
+					name: null,
+				},
+			)}{${useStrict}${n}${n}`,
 		)
 		.append(`${n}${n}}));`);
 }

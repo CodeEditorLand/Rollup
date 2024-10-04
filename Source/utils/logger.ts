@@ -1,28 +1,38 @@
-import { version as rollupVersion } from 'package.json';
+import { version as rollupVersion } from "package.json";
+
 import type {
 	LoggingFunction,
 	LogHandler,
 	LogLevel,
 	LogLevelOption,
 	Plugin,
-	RollupLog
-} from '../rollup/types';
-import { getSortedValidatedPlugins } from './PluginDriver';
-import { EMPTY_SET } from './blank';
-import { doNothing } from './doNothing';
-import { LOGLEVEL_DEBUG, LOGLEVEL_INFO, LOGLEVEL_WARN, logLevelPriority } from './logging';
-import { error } from './logs';
-import { normalizeLog } from './options/options';
+	RollupLog,
+} from "../rollup/types";
+import { EMPTY_SET } from "./blank";
+import { doNothing } from "./doNothing";
+import {
+	LOGLEVEL_DEBUG,
+	LOGLEVEL_INFO,
+	LOGLEVEL_WARN,
+	logLevelPriority,
+} from "./logging";
+import { error } from "./logs";
+import { normalizeLog } from "./options/options";
+import { getSortedValidatedPlugins } from "./PluginDriver";
 
 export function getLogger(
 	plugins: Plugin[],
 	onLog: LogHandler,
 	watchMode: boolean,
-	logLevel: LogLevelOption
+	logLevel: LogLevelOption,
 ): LogHandler {
-	plugins = getSortedValidatedPlugins('onLog', plugins);
+	plugins = getSortedValidatedPlugins("onLog", plugins);
 	const minimalPriority = logLevelPriority[logLevel];
-	const logger = (level: LogLevel, log: RollupLog, skipped: ReadonlySet<Plugin> = EMPTY_SET) => {
+	const logger = (
+		level: LogLevel,
+		log: RollupLog,
+		skipped: ReadonlySet<Plugin> = EMPTY_SET,
+	) => {
 		const logPriority = logLevelPriority[level];
 		if (logPriority < minimalPriority) {
 			return;
@@ -36,10 +46,16 @@ export function getLogger(
 				if (logLevelPriority[level] < minimalPriority) {
 					return doNothing;
 				}
-				return log => logger(level, normalizeLog(log), new Set(skipped).add(plugin));
+				return (log) =>
+					logger(
+						level,
+						normalizeLog(log),
+						new Set(skipped).add(plugin),
+					);
 			};
 
-			const handler = 'handler' in pluginOnLog! ? pluginOnLog.handler : pluginOnLog!;
+			const handler =
+				"handler" in pluginOnLog! ? pluginOnLog.handler : pluginOnLog!;
 			if (
 				handler.call(
 					{
@@ -47,10 +63,10 @@ export function getLogger(
 						error: (log): never => error(normalizeLog(log)),
 						info: getLogHandler(LOGLEVEL_INFO),
 						meta: { rollupVersion, watchMode },
-						warn: getLogHandler(LOGLEVEL_WARN)
+						warn: getLogHandler(LOGLEVEL_WARN),
 					},
 					level,
-					log
+					log,
 				) === false
 			) {
 				return;

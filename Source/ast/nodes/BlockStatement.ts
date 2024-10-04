@@ -1,13 +1,22 @@
-import type MagicString from 'magic-string';
-import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import BlockScope from '../scopes/BlockScope';
-import type ChildScope from '../scopes/ChildScope';
-import ExpressionStatement from './ExpressionStatement';
-import * as NodeType from './NodeType';
-import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { type IncludeChildren, type Node, StatementBase, type StatementNode } from './shared/Node';
+import type MagicString from "magic-string";
+
+import {
+	renderStatementList,
+	type RenderOptions,
+} from "../../utils/renderHelpers";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import BlockScope from "../scopes/BlockScope";
+import type ChildScope from "../scopes/ChildScope";
+import ExpressionStatement from "./ExpressionStatement";
+import * as NodeType from "./NodeType";
+import { Flag, isFlagSet, setFlag } from "./shared/BitFlags";
+import { UNKNOWN_EXPRESSION } from "./shared/Expression";
+import {
+	StatementBase,
+	type IncludeChildren,
+	type Node,
+	type StatementNode,
+} from "./shared/Node";
 
 export default class BlockStatement extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -49,13 +58,19 @@ export default class BlockStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		if (!(this.deoptimizeBody && this.directlyIncluded)) {
 			this.included = true;
 			this.directlyIncluded = true;
 			if (this.deoptimizeBody) includeChildrenRecursively = true;
 			for (const node of this.body) {
-				if (includeChildrenRecursively || node.shouldBeIncluded(context))
+				if (
+					includeChildrenRecursively ||
+					node.shouldBeIncluded(context)
+				)
 					node.include(context, includeChildrenRecursively);
 			}
 		}
@@ -65,12 +80,18 @@ export default class BlockStatement extends StatementBase {
 		const firstBodyStatement = this.body[0];
 		this.deoptimizeBody =
 			firstBodyStatement instanceof ExpressionStatement &&
-			firstBodyStatement.directive === 'use asm';
+			firstBodyStatement.directive === "use asm";
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.body.length > 0) {
-			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
+			renderStatementList(
+				this.body,
+				code,
+				this.start + 1,
+				this.end - 1,
+				options,
+			);
 		} else {
 			super.render(code, options);
 		}

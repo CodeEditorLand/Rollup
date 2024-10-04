@@ -1,12 +1,12 @@
-import type { ChunkDependency, ReexportSpecifier } from '../../Chunk';
-import type { GetInterop } from '../../rollup/types';
-import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { ChunkDependency, ReexportSpecifier } from "../../Chunk";
+import type { GetInterop } from "../../rollup/types";
+import type { GenerateCodeSnippets } from "../../utils/generateCodeSnippets";
 import {
 	defaultInteropHelpersByInteropType,
 	getHelpersBlock,
 	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
-	namespaceInteropHelpersByInteropType
-} from '../../utils/interopHelpers';
+	namespaceInteropHelpersByInteropType,
+} from "../../utils/interopHelpers";
 
 export default function getInteropBlock(
 	dependencies: readonly ChunkDependency[],
@@ -16,7 +16,7 @@ export default function getInteropBlock(
 	symbols: boolean,
 	accessedGlobals: Set<string>,
 	indent: string,
-	snippets: GenerateCodeSnippets
+	snippets: GenerateCodeSnippets,
 ): string {
 	const { _, cnst, n } = snippets;
 	const neededInteropHelpers = new Set<string>();
@@ -24,11 +24,11 @@ export default function getInteropBlock(
 	const addInteropStatement = (
 		helperVariableName: string,
 		helper: string,
-		dependencyVariableName: string
+		dependencyVariableName: string,
 	): void => {
 		neededInteropHelpers.add(helper);
 		interopStatements.push(
-			`${cnst} ${helperVariableName}${_}=${_}/*#__PURE__*/${helper}(${dependencyVariableName});`
+			`${cnst} ${helperVariableName}${_}=${_}/*#__PURE__*/${helper}(${dependencyVariableName});`,
 		);
 	};
 	for (const {
@@ -39,19 +39,19 @@ export default function getInteropBlock(
 		name,
 		namedExportsMode,
 		namespaceVariableName,
-		reexports
+		reexports,
 	} of dependencies) {
 		if (isChunk) {
 			for (const { imported, reexported } of [
 				...(imports || []),
-				...(reexports || [])
+				...(reexports || []),
 			] as ReexportSpecifier[]) {
-				if (imported === '*' && reexported !== '*') {
+				if (imported === "*" && reexported !== "*") {
 					if (!namedExportsMode) {
 						addInteropStatement(
 							namespaceVariableName!,
 							INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
-							name
+							name,
 						);
 					}
 					break;
@@ -63,21 +63,29 @@ export default function getInteropBlock(
 			let hasNamespace = false;
 			for (const { imported, reexported } of [
 				...(imports || []),
-				...(reexports || [])
+				...(reexports || []),
 			] as ReexportSpecifier[]) {
 				let helper: string | undefined | null;
 				let variableName: string | undefined;
-				if (imported === 'default') {
+				if (imported === "default") {
 					if (!hasDefault) {
 						hasDefault = true;
 						if (defaultVariableName !== namespaceVariableName) {
 							variableName = defaultVariableName!;
-							helper = defaultInteropHelpersByInteropType[moduleInterop];
+							helper =
+								defaultInteropHelpersByInteropType[
+									moduleInterop
+								];
 						}
 					}
-				} else if (imported === '*' && reexported !== '*' && !hasNamespace) {
+				} else if (
+					imported === "*" &&
+					reexported !== "*" &&
+					!hasNamespace
+				) {
 					hasNamespace = true;
-					helper = namespaceInteropHelpersByInteropType[moduleInterop];
+					helper =
+						namespaceInteropHelpersByInteropType[moduleInterop];
 					variableName = namespaceVariableName!;
 				}
 				if (helper) {
@@ -93,6 +101,6 @@ export default function getInteropBlock(
 		snippets,
 		externalLiveBindings,
 		freeze,
-		symbols
-	)}${interopStatements.length > 0 ? `${interopStatements.join(n)}${n}${n}` : ''}`;
+		symbols,
+	)}${interopStatements.length > 0 ? `${interopStatements.join(n)}${n}${n}` : ""}`;
 }

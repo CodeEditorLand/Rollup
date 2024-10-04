@@ -1,6 +1,6 @@
-import type { HasEffectsContext } from './ExecutionContext';
-import type { NodeInteractionAssigned } from './NodeInteractions';
-import type { ObjectPath } from './utils/PathTracker';
+import type { HasEffectsContext } from "./ExecutionContext";
+import type { NodeInteractionAssigned } from "./NodeInteractions";
+import type { ObjectPath } from "./utils/PathTracker";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Entity {}
@@ -17,6 +17,6 @@ export interface WritableEntity extends Entity {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionAssigned,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean;
 }

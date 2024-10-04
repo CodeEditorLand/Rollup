@@ -1,10 +1,10 @@
-import ExternalModule from '../ExternalModule';
-import Module from '../Module';
-import type { LogHandler } from '../rollup/types';
-import { getNewSet, getOrCreate } from './getOrCreate';
-import { concatLazy } from './iterators';
-import { logOptimizeChunkStatus } from './logs';
-import { timeEnd, timeStart } from './timers';
+import ExternalModule from "../ExternalModule";
+import Module from "../Module";
+import type { LogHandler } from "../rollup/types";
+import { getNewSet, getOrCreate } from "./getOrCreate";
+import { concatLazy } from "./iterators";
+import { logOptimizeChunkStatus } from "./logs";
+import { timeEnd, timeStart } from "./timers";
 
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
@@ -136,7 +136,7 @@ export function getChunkAssignments(
 	entries: ReadonlyArray<Module>,
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 	minChunkSize: number,
-	log: LogHandler
+	log: LogHandler,
 ): ChunkDefinitions {
 	const { chunkDefinitions, modulesInManualChunks } =
 		getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry);
@@ -144,12 +144,15 @@ export function getChunkAssignments(
 		allEntries,
 		dependentEntriesByModule,
 		dynamicallyDependentEntriesByDynamicEntry,
-		dynamicImportsByEntry
+		dynamicImportsByEntry,
 	} = analyzeModuleGraph(entries);
 
 	// Each chunk is identified by its position in this array
 	const initialChunks = getChunksFromDependentEntries(
-		getModulesWithDependentEntries(dependentEntriesByModule, modulesInManualChunks)
+		getModulesWithDependentEntries(
+			dependentEntriesByModule,
+			modulesInManualChunks,
+		),
 	);
 
 	// This mutates initialChunks but also clears
@@ -158,7 +161,7 @@ export function getChunkAssignments(
 		initialChunks,
 		dynamicallyDependentEntriesByDynamicEntry,
 		dynamicImportsByEntry,
-		allEntries
+		allEntries,
 	);
 
 	chunkDefinitions.push(
@@ -166,26 +169,27 @@ export function getChunkAssignments(
 			getChunksFromDependentEntries(initialChunks),
 			allEntries.length,
 			minChunkSize,
-			log
+			log,
 		).map(({ modules }) => ({
 			alias: null,
-			modules
-		}))
+			modules,
+		})),
 	);
 	return chunkDefinitions;
 }
 
 function getChunkDefinitionsFromManualChunks(
-	manualChunkAliasByEntry: ReadonlyMap<Module, string>
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>,
 ): { chunkDefinitions: ChunkDefinitions; modulesInManualChunks: Set<Module> } {
 	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
-	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
+	const manualChunkModulesByAlias: Record<string, Module[]> =
+		Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
 		addStaticDependenciesToManualChunk(
 			entry,
 			(manualChunkModulesByAlias[alias] ||= []),
-			modulesInManualChunks
+			modulesInManualChunks,
 		);
 	}
 	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
@@ -197,14 +201,19 @@ function getChunkDefinitionsFromManualChunks(
 function addStaticDependenciesToManualChunk(
 	entry: Module,
 	manualChunkModules: Module[],
-	modulesInManualChunks: Set<Module>
+	modulesInManualChunks: Set<Module>,
 ): void {
 	const modulesToHandle = new Set([entry]);
 	for (const module of modulesToHandle) {
 		modulesInManualChunks.add(module);
 		manualChunkModules.push(module);
 		for (const dependency of module.dependencies) {
-			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
+			if (
+				!(
+					dependency instanceof ExternalModule ||
+					modulesInManualChunks.has(dependency)
+				)
+			) {
 				modulesToHandle.add(dependency);
 			}
 		}
@@ -227,7 +236,11 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 		dynamicImportModulesByEntry.push(dynamicImportsForCurrentEntry);
 		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
-			getOrCreate(dependentEntriesByModule, module, getNewSet<number>).add(entryIndex);
+			getOrCreate(
+				dependentEntriesByModule,
+				module,
+				getNewSet<number>,
+			).add(entryIndex);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
@@ -257,24 +270,25 @@ function analyzeModuleGraph(entries: Iterable<Module>): {
 	const { dynamicEntries, dynamicImportsByEntry } = getDynamicEntries(
 		allEntries,
 		dynamicEntryModules,
-		dynamicImportModulesByEntry
+		dynamicImportModulesByEntry,
 	);
 	return {
 		allEntries,
 		dependentEntriesByModule,
-		dynamicallyDependentEntriesByDynamicEntry: getDynamicallyDependentEntriesByDynamicEntry(
-			dependentEntriesByModule,
-			dynamicEntries,
-			allEntries
-		),
-		dynamicImportsByEntry
+		dynamicallyDependentEntriesByDynamicEntry:
+			getDynamicallyDependentEntriesByDynamicEntry(
+				dependentEntriesByModule,
+				dynamicEntries,
+				allEntries,
+			),
+		dynamicImportsByEntry,
 	};
 }
 
 function getDynamicEntries(
 	allEntries: Module[],
 	dynamicEntryModules: Set<Module>,
-	dynamicImportModulesByEntry: Set<Module>[]
+	dynamicImportModulesByEntry: Set<Module>[],
 ) {
 	const entryIndexByModule = new Map<Module, number>();
 	const dynamicEntries = new Set<number>();
@@ -298,19 +312,22 @@ function getDynamicEntries(
 function getDynamicallyDependentEntriesByDynamicEntry(
 	dependentEntriesByModule: ReadonlyMap<Module, ReadonlySet<number>>,
 	dynamicEntries: ReadonlySet<number>,
-	allEntries: ReadonlyArray<Module>
+	allEntries: ReadonlyArray<Module>,
 ): Map<number, Set<number>> {
-	const dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>> = new Map();
+	const dynamicallyDependentEntriesByDynamicEntry: Map<
+		number,
+		Set<number>
+	> = new Map();
 	for (const dynamicEntryIndex of dynamicEntries) {
 		const dynamicallyDependentEntries = getOrCreate(
 			dynamicallyDependentEntriesByDynamicEntry,
 			dynamicEntryIndex,
-			getNewSet<number>
+			getNewSet<number>,
 		);
 		const dynamicEntry = allEntries[dynamicEntryIndex];
 		for (const importer of concatLazy([
 			dynamicEntry.includedDynamicImporters,
-			dynamicEntry.implicitlyLoadedAfter
+			dynamicEntry.implicitlyLoadedAfter,
 		])) {
 			for (const entry of dependentEntriesByModule.get(importer)!) {
 				dynamicallyDependentEntries.add(entry);
@@ -321,7 +338,7 @@ function getDynamicallyDependentEntriesByDynamicEntry(
 }
 
 function getChunksFromDependentEntries(
-	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>
+	modulesWithDependentEntries: Iterable<ModulesWithDependentEntries>,
 ): ModulesWithDependentEntries[] {
 	const chunkModules: {
 		[signature: string]: ModulesWithDependentEntries;
@@ -333,7 +350,7 @@ function getChunksFromDependentEntries(
 		}
 		(chunkModules[String(chunkSignature)] ||= {
 			dependentEntries: new Set(dependentEntries),
-			modules: []
+			modules: [],
 		}).modules.push(...modules);
 	}
 	return Object.values(chunkModules);
@@ -341,7 +358,7 @@ function getChunksFromDependentEntries(
 
 function* getModulesWithDependentEntries(
 	dependentEntriesByModule: Map<Module, Set<number>>,
-	modulesInManualChunks: Set<Module>
+	modulesInManualChunks: Set<Module>,
 ) {
 	for (const [module, dependentEntries] of dependentEntriesByModule) {
 		if (!modulesInManualChunks.has(module)) {
@@ -360,13 +377,16 @@ function removeUnnecessaryDependentEntries(
 	chunks: ModulesWithDependentEntries[],
 	dynamicallyDependentEntriesByDynamicEntry: Map<number, Set<number>>,
 	dynamicImportsByEntry: ReadonlyArray<ReadonlySet<number>>,
-	allEntries: ReadonlyArray<Module>
+	allEntries: ReadonlyArray<Module>,
 ) {
 	// The indices correspond to the indices in allEntries. The chunks correspond
 	// to bits in the bigint values where chunk 0 is the lowest bit.
 	const staticDependenciesPerEntry: bigint[] = allEntries.map(() => 0n);
-	const alreadyLoadedChunksPerEntry: bigint[] = allEntries.map((_entry, entryIndex) =>
-		dynamicallyDependentEntriesByDynamicEntry.has(entryIndex) ? -1n : 0n
+	const alreadyLoadedChunksPerEntry: bigint[] = allEntries.map(
+		(_entry, entryIndex) =>
+			dynamicallyDependentEntriesByDynamicEntry.has(entryIndex)
+				? -1n
+				: 0n,
 	);
 
 	// This toggles the bits for each chunk that is a dependency of an entry
@@ -384,22 +404,28 @@ function removeUnnecessaryDependentEntries(
 		dynamicallyDependentEntriesByDynamicEntry;
 	for (const [
 		dynamicEntryIndex,
-		updatedDynamicallyDependentEntries
+		updatedDynamicallyDependentEntries,
 	] of updatedDynamicallyDependentEntriesByDynamicEntry) {
-		updatedDynamicallyDependentEntriesByDynamicEntry.delete(dynamicEntryIndex);
-		const previousLoadedModules = alreadyLoadedChunksPerEntry[dynamicEntryIndex];
+		updatedDynamicallyDependentEntriesByDynamicEntry.delete(
+			dynamicEntryIndex,
+		);
+		const previousLoadedModules =
+			alreadyLoadedChunksPerEntry[dynamicEntryIndex];
 		let newLoadedModules = previousLoadedModules;
 		for (const entryIndex of updatedDynamicallyDependentEntries) {
 			newLoadedModules &=
-				staticDependenciesPerEntry[entryIndex] | alreadyLoadedChunksPerEntry[entryIndex];
+				staticDependenciesPerEntry[entryIndex] |
+				alreadyLoadedChunksPerEntry[entryIndex];
 		}
 		if (newLoadedModules !== previousLoadedModules) {
 			alreadyLoadedChunksPerEntry[dynamicEntryIndex] = newLoadedModules;
-			for (const dynamicImport of dynamicImportsByEntry[dynamicEntryIndex]) {
+			for (const dynamicImport of dynamicImportsByEntry[
+				dynamicEntryIndex
+			]) {
 				getOrCreate(
 					updatedDynamicallyDependentEntriesByDynamicEntry,
 					dynamicImport,
-					getNewSet<number>
+					getNewSet<number>,
 				).add(dynamicEntryIndex);
 			}
 		}
@@ -410,7 +436,10 @@ function removeUnnecessaryDependentEntries(
 	chunkMask = 1n;
 	for (const { dependentEntries } of chunks) {
 		for (const entryIndex of dependentEntries) {
-			if ((alreadyLoadedChunksPerEntry[entryIndex] & chunkMask) === chunkMask) {
+			if (
+				(alreadyLoadedChunksPerEntry[entryIndex] & chunkMask) ===
+				chunkMask
+			) {
 				dependentEntries.delete(entryIndex);
 			}
 		}
@@ -527,37 +556,45 @@ function getOptimizedChunks(
 	initialChunks: ModulesWithDependentEntries[],
 	numberOfEntries: number,
 	minChunkSize: number,
-	log: LogHandler
+	log: LogHandler,
 ): { modules: Module[] }[] {
-	timeStart('optimize chunks', 3);
-	const chunkPartition = getPartitionedChunks(initialChunks, numberOfEntries, minChunkSize);
+	timeStart("optimize chunks", 3);
+	const chunkPartition = getPartitionedChunks(
+		initialChunks,
+		numberOfEntries,
+		minChunkSize,
+	);
 	if (!chunkPartition) {
-		timeEnd('optimize chunks', 3);
+		timeEnd("optimize chunks", 3);
 		return initialChunks; // the actual modules
 	}
 	minChunkSize > 1 &&
 		log(
-			'info',
-			logOptimizeChunkStatus(initialChunks.length, chunkPartition.small.size, 'Initially')
+			"info",
+			logOptimizeChunkStatus(
+				initialChunks.length,
+				chunkPartition.small.size,
+				"Initially",
+			),
 		);
 	mergeChunks(chunkPartition, minChunkSize);
 	minChunkSize > 1 &&
 		log(
-			'info',
+			"info",
 			logOptimizeChunkStatus(
 				chunkPartition.small.size + chunkPartition.big.size,
 				chunkPartition.small.size,
-				'After merging chunks'
-			)
+				"After merging chunks",
+			),
 		);
-	timeEnd('optimize chunks', 3);
+	timeEnd("optimize chunks", 3);
 	return [...chunkPartition.small, ...chunkPartition.big];
 }
 
 function getPartitionedChunks(
 	initialChunks: ModulesWithDependentEntries[],
 	numberOfEntries: number,
-	minChunkSize: number
+	minChunkSize: number,
 ): ChunkPartition | null {
 	const smallChunks: ChunkDescription[] = [];
 	const bigChunks: ChunkDescription[] = [];
@@ -574,7 +611,7 @@ function getPartitionedChunks(
 			dependentEntries,
 			modules,
 			pure: true,
-			size: 0
+			size: 0,
 		};
 		let size = 0;
 		let pure = true;
@@ -606,13 +643,13 @@ function getPartitionedChunks(
 		[bigChunks, smallChunks],
 		chunkByModule,
 		numberOfEntries,
-		containedAtoms
+		containedAtoms,
 	);
 	return {
 		big: new Set(bigChunks),
 		sideEffectAtoms,
 		sizeByAtom,
-		small: new Set(smallChunks)
+		small: new Set(smallChunks),
 	};
 }
 
@@ -623,16 +660,22 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 			mergedChunk,
 			chunkPartition,
 			// In the default case, we do not accept size increases
-			minChunkSize <= 1 ? 1 : Infinity
+			minChunkSize <= 1 ? 1 : Infinity,
 		);
 		if (bestTargetChunk) {
-			const { containedAtoms, correlatedAtoms, modules, pure, size } = mergedChunk;
+			const { containedAtoms, correlatedAtoms, modules, pure, size } =
+				mergedChunk;
 			small.delete(mergedChunk);
-			getChunksInPartition(bestTargetChunk, minChunkSize, chunkPartition).delete(bestTargetChunk);
+			getChunksInPartition(
+				bestTargetChunk,
+				minChunkSize,
+				chunkPartition,
+			).delete(bestTargetChunk);
 			bestTargetChunk.modules.push(...modules);
 			bestTargetChunk.size += size;
 			bestTargetChunk.pure &&= pure;
-			const { dependencies, dependentChunks, dependentEntries } = bestTargetChunk;
+			const { dependencies, dependentChunks, dependentEntries } =
+				bestTargetChunk;
 			bestTargetChunk.correlatedAtoms &= correlatedAtoms;
 			bestTargetChunk.containedAtoms |= containedAtoms;
 			for (const entry of mergedChunk.dependentEntries) {
@@ -650,7 +693,11 @@ function mergeChunks(chunkPartition: ChunkPartition, minChunkSize: number) {
 			}
 			dependencies.delete(bestTargetChunk);
 			dependentChunks.delete(bestTargetChunk);
-			getChunksInPartition(bestTargetChunk, minChunkSize, chunkPartition).add(bestTargetChunk);
+			getChunksInPartition(
+				bestTargetChunk,
+				minChunkSize,
+				chunkPartition,
+			).add(bestTargetChunk);
 		}
 	}
 }
@@ -659,7 +706,7 @@ function addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
 	chunkLists: ChunkDescription[][],
 	chunkByModule: Map<Module, ChunkDescription>,
 	numberOfEntries: number,
-	nextAtomSignature: bigint
+	nextAtomSignature: bigint,
 ): bigint {
 	const signatureByExternalModule = new Map<ExternalModule, bigint>();
 	let sideEffectAtoms = 0n;
@@ -675,12 +722,16 @@ function addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
 				for (const dependency of module.getDependenciesToBeIncluded()) {
 					if (dependency instanceof ExternalModule) {
 						if (dependency.info.moduleSideEffects) {
-							chunk.containedAtoms |= getOrCreate(signatureByExternalModule, dependency, () => {
-								const signature = nextAtomSignature;
-								nextAtomSignature <<= 1n;
-								sideEffectAtoms |= signature;
-								return signature;
-							});
+							chunk.containedAtoms |= getOrCreate(
+								signatureByExternalModule,
+								dependency,
+								() => {
+									const signature = nextAtomSignature;
+									nextAtomSignature <<= 1n;
+									sideEffectAtoms |= signature;
+									return signature;
+								},
+							);
 						}
 					} else {
 						const dependencyChunk = chunkByModule.get(dependency);
@@ -713,7 +764,7 @@ function addChunkDependenciesAndAtomsAndGetSideEffectAtoms(
 function findBestMergeTarget(
 	mergedChunk: ChunkDescription,
 	{ big, sideEffectAtoms, sizeByAtom, small }: ChunkPartition,
-	smallestAdditionalSize: number
+	smallestAdditionalSize: number,
 ): ChunkDescription | null {
 	let bestTargetChunk: ChunkDescription | null = null;
 	// In the default case, we do not accept size increases
@@ -724,7 +775,7 @@ function findBestMergeTarget(
 			targetChunk,
 			smallestAdditionalSize,
 			sideEffectAtoms,
-			sizeByAtom
+			sizeByAtom,
 		);
 		if (additionalSizeAfterMerge < smallestAdditionalSize) {
 			bestTargetChunk = targetChunk;
@@ -738,14 +789,16 @@ function findBestMergeTarget(
 function getChunksInPartition(
 	chunk: ChunkDescription,
 	minChunkSize: number,
-	chunkPartition: ChunkPartition
+	chunkPartition: ChunkPartition,
 ): Set<ChunkDescription> {
-	return chunk.size < minChunkSize ? chunkPartition.small : chunkPartition.big;
+	return chunk.size < minChunkSize
+		? chunkPartition.small
+		: chunkPartition.big;
 }
 
 function compareChunkSize(
 	{ size: sizeA }: ChunkDescription,
-	{ size: sizeB }: ChunkDescription
+	{ size: sizeB }: ChunkDescription,
 ): number {
 	return sizeA - sizeB;
 }
@@ -765,15 +818,16 @@ function getAdditionalSizeAfterMerge(
 	// taking dependencies into account, needs to be below this number
 	currentAdditionalSize: number,
 	sideEffectAtoms: bigint,
-	sizeByAtom: number[]
+	sizeByAtom: number[],
 ): number {
-	const firstSize = getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
-		mergedChunk,
-		targetChunk,
-		currentAdditionalSize,
-		sideEffectAtoms,
-		sizeByAtom
-	);
+	const firstSize =
+		getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
+			mergedChunk,
+			targetChunk,
+			currentAdditionalSize,
+			sideEffectAtoms,
+			sizeByAtom,
+		);
 	return firstSize < currentAdditionalSize
 		? firstSize +
 				getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
@@ -781,7 +835,7 @@ function getAdditionalSizeAfterMerge(
 					mergedChunk,
 					currentAdditionalSize - firstSize,
 					sideEffectAtoms,
-					sizeByAtom
+					sizeByAtom,
 				)
 		: Infinity;
 }
@@ -791,12 +845,15 @@ function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 	dependencyChunk: ChunkDescription,
 	currentAdditionalSize: number,
 	sideEffectAtoms: bigint,
-	sizeByAtom: number[]
+	sizeByAtom: number[],
 ): number {
 	const { correlatedAtoms } = dependencyChunk;
 	let dependencyAtoms = dependentChunk.containedAtoms;
 	const dependentContainedSideEffects = dependencyAtoms & sideEffectAtoms;
-	if ((correlatedAtoms & dependentContainedSideEffects) !== dependentContainedSideEffects) {
+	if (
+		(correlatedAtoms & dependentContainedSideEffects) !==
+		dependentContainedSideEffects
+	) {
 		return Infinity;
 	}
 	const chunksToCheck = new Set(dependentChunk.dependencies);
@@ -816,14 +873,14 @@ function getAdditionalSizeIfNoTransitiveDependencyOrNonCorrelatedSideEffect(
 	return getAtomsSizeIfBelowLimit(
 		dependencyAtoms & ~correlatedAtoms,
 		currentAdditionalSize,
-		sizeByAtom
+		sizeByAtom,
 	);
 }
 
 function getAtomsSizeIfBelowLimit(
 	atoms: bigint,
 	currentAdditionalSize: number,
-	sizeByAtom: number[]
+	sizeByAtom: number[],
 ): number {
 	let size = 0;
 	let atomIndex = 0;

@@ -12,7 +12,7 @@ export function isRelative(path: string): boolean {
 const BACKSLASH_REGEX = /\\/g;
 
 export function normalize(path: string): string {
-	return path.replace(BACKSLASH_REGEX, '/');
+	return path.replace(BACKSLASH_REGEX, "/");
 }
 
-export { basename, dirname, extname, relative, resolve } from 'node:path';
+export { basename, dirname, extname, relative, resolve } from "node:path";

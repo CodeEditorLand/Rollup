@@ -1,6 +1,9 @@
-import type { PluginCache, SerializablePluginCache } from '../rollup/types';
-import { error, logAnonymousPluginCache, logDuplicatePluginName } from './logs';
-import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
+import type { PluginCache, SerializablePluginCache } from "../rollup/types";
+import { error, logAnonymousPluginCache, logDuplicatePluginName } from "./logs";
+import {
+	ANONYMOUS_OUTPUT_PLUGIN_PREFIX,
+	ANONYMOUS_PLUGIN_PREFIX,
+} from "./pluginUtils";
 
 export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 	return {
@@ -21,11 +24,14 @@ export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 		},
 		set(id: string, value: any) {
 			cache[id] = [0, value];
-		}
+		},
 	};
 }
 
-export function getTrackedPluginCache(pluginCache: PluginCache, onUse: () => void): PluginCache {
+export function getTrackedPluginCache(
+	pluginCache: PluginCache,
+	onUse: () => void,
+): PluginCache {
 	return {
 		delete(id: string) {
 			onUse();
@@ -42,7 +48,7 @@ export function getTrackedPluginCache(pluginCache: PluginCache, onUse: () => voi
 		set(id: string, value: any) {
 			onUse();
 			return pluginCache.set(id, value);
-		}
+		},
 	};
 }
 
@@ -56,7 +62,7 @@ export const NO_CACHE: PluginCache = {
 	has() {
 		return false;
 	},
-	set() {}
+	set() {},
 };
 
 function uncacheablePluginError(pluginName: string): never {
@@ -82,6 +88,6 @@ export function getCacheForUncacheablePlugin(pluginName: string): PluginCache {
 		},
 		set() {
 			return uncacheablePluginError(pluginName);
-		}
+		},
 	};
 }

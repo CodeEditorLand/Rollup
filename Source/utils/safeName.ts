@@ -1,14 +1,18 @@
-import RESERVED_NAMES from './RESERVED_NAMES';
-import { toBase64 } from './base64';
+import { toBase64 } from "./base64";
+import RESERVED_NAMES from "./RESERVED_NAMES";
 
 export function getSafeName(
 	baseName: string,
 	usedNames: Set<string>,
-	forbiddenNames: Set<string> | null
+	forbiddenNames: Set<string> | null,
 ): string {
 	let safeName = baseName;
 	let count = 1;
-	while (usedNames.has(safeName) || RESERVED_NAMES.has(safeName) || forbiddenNames?.has(safeName)) {
+	while (
+		usedNames.has(safeName) ||
+		RESERVED_NAMES.has(safeName) ||
+		forbiddenNames?.has(safeName)
+	) {
 		safeName = `${baseName}$${toBase64(count++)}`;
 	}
 	usedNames.add(safeName);

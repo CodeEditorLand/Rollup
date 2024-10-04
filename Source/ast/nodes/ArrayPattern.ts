@@ -1,12 +1,12 @@
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
-import type LocalVariable from '../variables/LocalVariable';
-import type Variable from '../variables/Variable';
-import type * as NodeType from './NodeType';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { HasEffectsContext } from "../ExecutionContext";
+import type { NodeInteractionAssigned } from "../NodeInteractions";
+import { EMPTY_PATH, type ObjectPath } from "../utils/PathTracker";
+import type LocalVariable from "../variables/LocalVariable";
+import type Variable from "../variables/Variable";
+import type * as NodeType from "./NodeType";
+import { UNKNOWN_EXPRESSION } from "./shared/Expression";
+import { NodeBase } from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
 	declare elements: (PatternNode | null)[];
@@ -14,7 +14,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 
 	addExportedVariables(
 		variables: readonly Variable[],
-		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 	): void {
 		for (const element of this.elements) {
 			element?.addExportedVariables(variables, exportNamesByVariable);
@@ -42,10 +42,17 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	hasEffectsOnInteractionAtPath(
 		_path: ObjectPath,
 		interaction: NodeInteractionAssigned,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		for (const element of this.elements) {
-			if (element?.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
+			if (
+				element?.hasEffectsOnInteractionAtPath(
+					EMPTY_PATH,
+					interaction,
+					context,
+				)
+			)
+				return true;
 		}
 		return false;
 	}

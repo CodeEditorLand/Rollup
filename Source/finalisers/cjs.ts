@@ -1,10 +1,11 @@
-import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependency } from '../Chunk';
-import type { NormalizedOutputOptions } from '../rollup/types';
-import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
-import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
-import getInteropBlock from './shared/getInteropBlock';
-import type { FinaliserOptions } from './index';
+import type { Bundle as MagicStringBundle } from "magic-string";
+
+import type { ChunkDependency } from "../Chunk";
+import type { NormalizedOutputOptions } from "../rollup/types";
+import type { GenerateCodeSnippets } from "../utils/generateCodeSnippets";
+import type { FinaliserOptions } from "./index";
+import { getExportBlock, getNamespaceMarkers } from "./shared/getExportBlock";
+import getInteropBlock from "./shared/getInteropBlock";
 
 export default function cjs(
 	magicString: MagicStringBundle,
@@ -20,7 +21,7 @@ export default function cjs(
 		isModuleFacade,
 		namedExportsMode,
 		outro,
-		snippets
+		snippets,
 	}: FinaliserOptions,
 	{
 		compact,
@@ -29,17 +30,19 @@ export default function cjs(
 		freeze,
 		interop,
 		generatedCode: { symbols },
-		strict
-	}: NormalizedOutputOptions
+		strict,
+	}: NormalizedOutputOptions,
 ): void {
 	const { _, n } = snippets;
 
-	const useStrict = strict ? `'use strict';${n}${n}` : '';
+	const useStrict = strict ? `'use strict';${n}${n}` : "";
 	let namespaceMarkers = getNamespaceMarkers(
 		namedExportsMode && hasExports,
-		isEntryFacade && (esModule === true || (esModule === 'if-default-prop' && hasDefaultExport)),
+		isEntryFacade &&
+			(esModule === true ||
+				(esModule === "if-default-prop" && hasDefaultExport)),
 		isModuleFacade && symbols,
-		snippets
+		snippets,
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers += n + n;
@@ -53,10 +56,12 @@ export default function cjs(
 		symbols,
 		accessedGlobals,
 		t,
-		snippets
+		snippets,
 	);
 
-	magicString.prepend(`${useStrict}${intro}${namespaceMarkers}${importBlock}${interopBlock}`);
+	magicString.prepend(
+		`${useStrict}${intro}${namespaceMarkers}${importBlock}${interopBlock}`,
+	);
 
 	const exportBlock = getExportBlock(
 		exports,
@@ -66,7 +71,7 @@ export default function cjs(
 		snippets,
 		t,
 		externalLiveBindings,
-		`module.exports${_}=${_}`
+		`module.exports${_}=${_}`,
 	);
 
 	magicString.append(`${exportBlock}${outro}`);
@@ -75,19 +80,22 @@ export default function cjs(
 function getImportBlock(
 	dependencies: readonly ChunkDependency[],
 	{ _, cnst, n }: GenerateCodeSnippets,
-	compact: boolean
+	compact: boolean,
 ): string {
-	let importBlock = '';
+	let importBlock = "";
 	let definingVariable = false;
 	for (const { importPath, name, reexports, imports } of dependencies) {
 		if (!reexports && !imports) {
 			if (importBlock) {
-				importBlock += compact && !definingVariable ? ',' : `;${n}`;
+				importBlock += compact && !definingVariable ? "," : `;${n}`;
 			}
 			definingVariable = false;
 			importBlock += `require('${importPath}')`;
 		} else {
-			importBlock += compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${cnst} `;
+			importBlock +=
+				compact && definingVariable
+					? ","
+					: `${importBlock ? `;${n}` : ""}${cnst} `;
 			definingVariable = true;
 			importBlock += `${name}${_}=${_}require('${importPath}')`;
 		}
@@ -95,5 +103,5 @@ function getImportBlock(
 	if (importBlock) {
 		return `${importBlock};${n}${n}`;
 	}
-	return '';
+	return "";
 }

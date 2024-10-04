@@ -1,12 +1,12 @@
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type * as NodeType from './NodeType';
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import type * as NodeType from "./NodeType";
+import { hasLoopBodyEffects, includeLoopBody } from "./shared/loops";
 import {
+	StatementBase,
 	type ExpressionNode,
 	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
-import { hasLoopBodyEffects, includeLoopBody } from './shared/loops';
+	type StatementNode,
+} from "./shared/Node";
 
 export default class WhileStatement extends StatementBase {
 	declare body: StatementNode;
@@ -18,7 +18,10 @@ export default class WhileStatement extends StatementBase {
 		return hasLoopBodyEffects(context, this.body);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
 		includeLoopBody(context, this.body, includeChildrenRecursively);

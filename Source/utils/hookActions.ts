@@ -1,23 +1,24 @@
-import process from 'node:process';
-import type { HookAction, PluginDriver } from './PluginDriver';
+import process from "node:process";
+
+import type { HookAction, PluginDriver } from "./PluginDriver";
 
 function formatAction([pluginName, hookName, parameters]: HookAction): string {
 	const action = `(${pluginName}) ${hookName}`;
 	const s = JSON.stringify;
 	switch (hookName) {
-		case 'resolveId': {
+		case "resolveId": {
 			return `${action} ${s(parameters[0])} ${s(parameters[1])}`;
 		}
-		case 'load': {
+		case "load": {
 			return `${action} ${s(parameters[0])}`;
 		}
-		case 'transform': {
+		case "transform": {
 			return `${action} ${s(parameters[1])}`;
 		}
-		case 'shouldTransformCachedModule': {
+		case "shouldTransformCachedModule": {
 			return `${action} ${s((parameters[0] as { id: string }).id)}`;
 		}
-		case 'moduleParsed': {
+		case "moduleParsed": {
 			return `${action} ${s((parameters[0] as { id: string }).id)}`;
 		}
 	}
@@ -29,7 +30,7 @@ const rejectByPluginDriver = new Map<PluginDriver, (reason: Error) => void>();
 
 export async function catchUnfinishedHookActions<T>(
 	pluginDriver: PluginDriver,
-	callback: () => Promise<T>
+	callback: () => Promise<T>,
 ): Promise<T> {
 	const emptyEventLoopPromise = new Promise<T>((_, reject) => {
 		rejectByPluginDriver.set(pluginDriver, reject);
@@ -38,16 +39,19 @@ export async function catchUnfinishedHookActions<T>(
 			// other issues
 			handleBeforeExit = () => {
 				for (const [pluginDriver, reject] of rejectByPluginDriver) {
-					const unfulfilledActions = pluginDriver.getUnfulfilledHookActions();
+					const unfulfilledActions =
+						pluginDriver.getUnfulfilledHookActions();
 					reject(
 						new Error(
 							`Unexpected early exit. This happens when Promises returned by plugins cannot resolve. Unfinished hook action(s) on exit:\n` +
-								[...unfulfilledActions].map(formatAction).join('\n')
-						)
+								[...unfulfilledActions]
+									.map(formatAction)
+									.join("\n"),
+						),
 					);
 				}
 			};
-			process.once('beforeExit', handleBeforeExit);
+			process.once("beforeExit", handleBeforeExit);
 		}
 	});
 
@@ -56,7 +60,7 @@ export async function catchUnfinishedHookActions<T>(
 	} finally {
 		rejectByPluginDriver.delete(pluginDriver);
 		if (rejectByPluginDriver.size === 0) {
-			process.off('beforeExit', handleBeforeExit!);
+			process.off("beforeExit", handleBeforeExit!);
 			handleBeforeExit = null;
 		}
 	}

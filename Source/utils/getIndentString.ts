@@ -1,10 +1,10 @@
-import type Module from '../Module';
+import type Module from "../Module";
 
 function guessIndentString(code: string): string | null {
-	const lines = code.split('\n');
+	const lines = code.split("\n");
 
-	const tabbed = lines.filter(line => /^\t+/.test(line));
-	const spaced = lines.filter(line => /^ {2,}/.test(line));
+	const tabbed = lines.filter((line) => /^\t+/.test(line));
+	const spaced = lines.filter((line) => /^ {2,}/.test(line));
 
 	if (tabbed.length === 0 && spaced.length === 0) {
 		return null;
@@ -14,7 +14,7 @@ function guessIndentString(code: string): string | null {
 	// default to tabs in the case of a tie (or nothing
 	// to go on)
 	if (tabbed.length >= spaced.length) {
-		return '\t';
+		return "\t";
 	}
 
 	// Otherwise, we need to guess the multiple
@@ -23,12 +23,12 @@ function guessIndentString(code: string): string | null {
 		return Math.min(numberSpaces, previous);
 	}, Infinity);
 
-	return ' '.repeat(min);
+	return " ".repeat(min);
 }
 
 export default function getIndentString(
 	modules: readonly Module[],
-	options: { indent: true | string }
+	options: { indent: true | string },
 ): string {
 	if (options.indent !== true) return options.indent;
 	for (const module of modules) {
@@ -36,5 +36,5 @@ export default function getIndentString(
 		if (indent !== null) return indent;
 	}
 
-	return '\t';
+	return "\t";
 }

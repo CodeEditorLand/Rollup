@@ -1,14 +1,14 @@
-import GlobalVariable from '../variables/GlobalVariable';
-import UndefinedVariable from '../variables/UndefinedVariable';
-import type Variable from '../variables/Variable';
-import Scope from './Scope';
+import GlobalVariable from "../variables/GlobalVariable";
+import UndefinedVariable from "../variables/UndefinedVariable";
+import type Variable from "../variables/Variable";
+import Scope from "./Scope";
 
 export default class GlobalScope extends Scope {
 	parent = null;
 
 	constructor() {
 		super();
-		this.variables.set('undefined', new UndefinedVariable());
+		this.variables.set("undefined", new UndefinedVariable());
 	}
 
 	findVariable(name: string): Variable {

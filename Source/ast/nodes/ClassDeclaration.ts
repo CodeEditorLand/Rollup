@@ -1,12 +1,13 @@
-import type MagicString from 'magic-string';
-import type { RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import type ChildScope from '../scopes/ChildScope';
-import type Variable from '../variables/Variable';
-import Identifier, { type IdentifierWithVariable } from './Identifier';
-import type * as NodeType from './NodeType';
-import ClassNode from './shared/ClassNode';
-import type { GenericEsTreeNode } from './shared/Node';
+import type MagicString from "magic-string";
+
+import type { RenderOptions } from "../../utils/renderHelpers";
+import { getSystemExportStatement } from "../../utils/systemJsRendering";
+import type ChildScope from "../scopes/ChildScope";
+import type Variable from "../variables/Variable";
+import Identifier, { type IdentifierWithVariable } from "./Identifier";
+import type * as NodeType from "./NodeType";
+import ClassNode from "./shared/ClassNode";
+import type { GenericEsTreeNode } from "./shared/Node";
 
 export default class ClassDeclaration extends ClassNode {
 	declare id: IdentifierWithVariable | null;
@@ -24,7 +25,7 @@ export default class ClassDeclaration extends ClassNode {
 			this.id = new Identifier(
 				esTreeNode.id,
 				this,
-				this.scope.parent as ChildScope
+				this.scope.parent as ChildScope,
 			) as IdentifierWithVariable;
 		}
 		super.parseNode(esTreeNode);
@@ -34,22 +35,29 @@ export default class ClassDeclaration extends ClassNode {
 		const {
 			exportNamesByVariable,
 			format,
-			snippets: { _, getPropertyAccess }
+			snippets: { _, getPropertyAccess },
 		} = options;
 		if (this.id) {
 			const { variable, name } = this.id;
-			if (format === 'system' && exportNamesByVariable.has(variable)) {
-				code.appendLeft(this.end, `${_}${getSystemExportStatement([variable], options)};`);
+			if (format === "system" && exportNamesByVariable.has(variable)) {
+				code.appendLeft(
+					this.end,
+					`${_}${getSystemExportStatement([variable], options)};`,
+				);
 			}
 			const renderedVariable = variable.getName(getPropertyAccess);
 			if (renderedVariable !== name) {
 				this.superClass?.render(code, options);
 				this.body.render(code, {
 					...options,
-					useOriginalName: (_variable: Variable) => _variable === variable
+					useOriginalName: (_variable: Variable) =>
+						_variable === variable,
 				});
-				code.prependRight(this.start, `let ${renderedVariable}${_}=${_}`);
-				code.prependLeft(this.end, ';');
+				code.prependRight(
+					this.start,
+					`let ${renderedVariable}${_}=${_}`,
+				);
+				code.prependLeft(this.end, ";");
 				return;
 			}
 		}

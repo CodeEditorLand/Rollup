@@ -1,16 +1,24 @@
-import type MagicString from 'magic-string';
-import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import type MagicString from "magic-string";
+
+import {
+	renderStatementList,
+	type RenderOptions,
+} from "../../utils/renderHelpers";
 import {
 	createHasEffectsContext,
 	type HasEffectsContext,
-	type InclusionContext
-} from '../ExecutionContext';
-import BlockScope from '../scopes/BlockScope';
-import type ChildScope from '../scopes/ChildScope';
-import type * as NodeType from './NodeType';
-import type SwitchCase from './SwitchCase';
-import type { ExpressionNode, GenericEsTreeNode, IncludeChildren } from './shared/Node';
-import { StatementBase } from './shared/Node';
+	type InclusionContext,
+} from "../ExecutionContext";
+import BlockScope from "../scopes/BlockScope";
+import type ChildScope from "../scopes/ChildScope";
+import type * as NodeType from "./NodeType";
+import {
+	StatementBase,
+	type ExpressionNode,
+	type GenericEsTreeNode,
+	type IncludeChildren,
+} from "./shared/Node";
+import type SwitchCase from "./SwitchCase";
 
 export default class SwitchStatement extends StatementBase {
 	declare cases: readonly SwitchCase[];
@@ -47,7 +55,10 @@ export default class SwitchStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
 		const { brokenFlow, hasBreak } = context;
@@ -55,8 +66,13 @@ export default class SwitchStatement extends StatementBase {
 		let onlyHasBrokenFlow = true;
 		let isCaseIncluded =
 			includeChildrenRecursively ||
-			(this.defaultCase !== null && this.defaultCase < this.cases.length - 1);
-		for (let caseIndex = this.cases.length - 1; caseIndex >= 0; caseIndex--) {
+			(this.defaultCase !== null &&
+				this.defaultCase < this.cases.length - 1);
+		for (
+			let caseIndex = this.cases.length - 1;
+			caseIndex >= 0;
+			caseIndex--
+		) {
 			const switchCase = this.cases[caseIndex];
 			if (switchCase.included) {
 				isCaseIncluded = true;
@@ -93,18 +109,22 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.discriminant = new (this.scope.context.getNodeConstructor(esTreeNode.discriminant.type))(
-			esTreeNode.discriminant,
-			this,
-			this.parentScope
-		);
+		this.discriminant = new (this.scope.context.getNodeConstructor(
+			esTreeNode.discriminant.type,
+		))(esTreeNode.discriminant, this, this.parentScope);
 		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
 		this.discriminant.render(code, options);
 		if (this.cases.length > 0) {
-			renderStatementList(this.cases, code, this.cases[0].start, this.end - 1, options);
+			renderStatementList(
+				this.cases,
+				code,
+				this.cases[0].start,
+				this.end - 1,
+				options,
+			);
 		}
 	}
 }

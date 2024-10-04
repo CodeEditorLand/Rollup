@@ -1,12 +1,12 @@
-import type { ChunkDependency, ChunkExports } from '../../Chunk';
-import type { GetInterop } from '../../rollup/types';
-import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { ChunkDependency, ChunkExports } from "../../Chunk";
+import type { GetInterop } from "../../rollup/types";
+import type { GenerateCodeSnippets } from "../../utils/generateCodeSnippets";
 import {
 	defaultInteropHelpersByInteropType,
 	getToStringTagValue,
 	isDefaultAProperty,
-	namespaceInteropHelpersByInteropType
-} from '../../utils/interopHelpers';
+	namespaceInteropHelpersByInteropType,
+} from "../../utils/interopHelpers";
 
 export function getExportBlock(
 	exports: ChunkExports,
@@ -16,20 +16,27 @@ export function getExportBlock(
 	snippets: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
-	mechanism = 'return '
+	mechanism = "return ",
 ): string {
-	const { _, getDirectReturnFunction, getFunctionIntro, getPropertyAccess, n, s } = snippets;
+	const {
+		_,
+		getDirectReturnFunction,
+		getFunctionIntro,
+		getPropertyAccess,
+		n,
+		s,
+	} = snippets;
 	if (!namedExportsMode) {
 		return `${n}${n}${mechanism}${getSingleDefaultExport(
 			exports,
 			dependencies,
 			interop,
 			externalLiveBindings,
-			getPropertyAccess
+			getPropertyAccess,
 		)};`;
 	}
 
-	let exportBlock = '';
+	let exportBlock = "";
 
 	for (const {
 		defaultVariableName,
@@ -38,11 +45,11 @@ export function getExportBlock(
 		name,
 		namedExportsMode: depNamedExportsMode,
 		namespaceVariableName,
-		reexports
+		reexports,
 	} of dependencies) {
 		if (reexports && namedExportsMode) {
 			for (const specifier of reexports) {
-				if (specifier.reexported !== '*') {
+				if (specifier.reexported !== "*") {
 					const importName = getReexportedImportName(
 						name,
 						specifier.imported,
@@ -53,14 +60,17 @@ export function getExportBlock(
 						interop,
 						importPath,
 						externalLiveBindings,
-						getPropertyAccess
+						getPropertyAccess,
 					);
 					if (exportBlock) exportBlock += n;
-					if (specifier.imported !== '*' && specifier.needsLiveBinding) {
+					if (
+						specifier.imported !== "*" &&
+						specifier.needsLiveBinding
+					) {
 						const [left, right] = getDirectReturnFunction([], {
 							functionReturn: true,
 							lineBreakIndent: null,
-							name: null
+							name: null,
 						});
 						exportBlock +=
 							`Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
@@ -68,7 +78,7 @@ export function getExportBlock(
 							`${t}get:${_}${left}${importName}${right}${n}});`;
 					} else {
 						exportBlock += `exports${getPropertyAccess(
-							specifier.reexported
+							specifier.reexported,
 						)}${_}=${_}${importName};`;
 					}
 				}
@@ -88,18 +98,21 @@ export function getExportBlock(
 	for (const { name, reexports } of dependencies) {
 		if (reexports && namedExportsMode) {
 			for (const specifier of reexports) {
-				if (specifier.reexported === '*') {
+				if (specifier.reexported === "*") {
 					if (exportBlock) exportBlock += n;
 					const copyPropertyIfNecessary = `{${n}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!Object.prototype.hasOwnProperty.call(exports,${_}k))${_}${getDefineProperty(
 						name,
 						specifier.needsLiveBinding,
 						t,
-						snippets
+						snippets,
 					)}${s}${n}}`;
-					exportBlock += `Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
-						isAsync: false,
-						name: null
-					})}${copyPropertyIfNecessary});`;
+					exportBlock += `Object.keys(${name}).forEach(${getFunctionIntro(
+						["k"],
+						{
+							isAsync: false,
+							name: null,
+						},
+					)}${copyPropertyIfNecessary});`;
 				}
 			}
 		}
@@ -109,7 +122,7 @@ export function getExportBlock(
 		return `${n}${n}${exportBlock}`;
 	}
 
-	return '';
+	return "";
 }
 
 function getSingleDefaultExport(
@@ -117,7 +130,7 @@ function getSingleDefaultExport(
 	dependencies: readonly ChunkDependency[],
 	interop: GetInterop,
 	externalLiveBindings: boolean,
-	getPropertyAccess: (name: string) => string
+	getPropertyAccess: (name: string) => string,
 ) {
 	if (exports.length > 0) {
 		return exports[0].local;
@@ -129,7 +142,7 @@ function getSingleDefaultExport(
 			name,
 			namedExportsMode: depNamedExportsMode,
 			namespaceVariableName,
-			reexports
+			reexports,
 		} of dependencies) {
 			if (reexports) {
 				return getReexportedImportName(
@@ -142,7 +155,7 @@ function getSingleDefaultExport(
 					interop,
 					importPath,
 					externalLiveBindings,
-					getPropertyAccess
+					getPropertyAccess,
 				);
 			}
 		}
@@ -159,25 +172,29 @@ function getReexportedImportName(
 	interop: GetInterop,
 	moduleId: string,
 	externalLiveBindings: boolean,
-	getPropertyAccess: (name: string) => string
+	getPropertyAccess: (name: string) => string,
 ) {
-	if (imported === 'default') {
+	if (imported === "default") {
 		if (!isChunk) {
 			const moduleInterop = interop(moduleId);
-			const variableName = defaultInteropHelpersByInteropType[moduleInterop]
+			const variableName = defaultInteropHelpersByInteropType[
+				moduleInterop
+			]
 				? defaultVariableName
 				: moduleVariableName;
 			return isDefaultAProperty(moduleInterop, externalLiveBindings)
-				? `${variableName}${getPropertyAccess('default')}`
+				? `${variableName}${getPropertyAccess("default")}`
 				: variableName;
 		}
 		return depNamedExportsMode
-			? `${moduleVariableName}${getPropertyAccess('default')}`
+			? `${moduleVariableName}${getPropertyAccess("default")}`
 			: moduleVariableName;
 	}
-	if (imported === '*') {
+	if (imported === "*") {
 		return (
-			isChunk ? !depNamedExportsMode : namespaceInteropHelpersByInteropType[interop(moduleId)]
+			isChunk
+				? !depNamedExportsMode
+				: namespaceInteropHelpersByInteropType[interop(moduleId)]
 		)
 			? namespaceVariableName
 			: moduleVariableName;
@@ -185,9 +202,9 @@ function getReexportedImportName(
 	return `${moduleVariableName}${getPropertyAccess(imported)}`;
 }
 
-function getEsModuleValue(getObject: GenerateCodeSnippets['getObject']) {
-	return getObject([['value', 'true']], {
-		lineBreakIndent: null
+function getEsModuleValue(getObject: GenerateCodeSnippets["getObject"]) {
+	return getObject([["value", "true"]], {
+		lineBreakIndent: null,
 	});
 }
 
@@ -195,43 +212,46 @@ export function getNamespaceMarkers(
 	hasNamedExports: boolean,
 	addEsModule: boolean,
 	addNamespaceToStringTag: boolean,
-	{ _, getObject }: GenerateCodeSnippets
+	{ _, getObject }: GenerateCodeSnippets,
 ): string {
 	if (hasNamedExports) {
 		if (addEsModule) {
 			if (addNamespaceToStringTag) {
 				return `Object.defineProperties(exports,${_}${getObject(
 					[
-						['__esModule', getEsModuleValue(getObject)],
-						[null, `[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}`]
+						["__esModule", getEsModuleValue(getObject)],
+						[
+							null,
+							`[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}`,
+						],
 					],
 					{
-						lineBreakIndent: null
-					}
+						lineBreakIndent: null,
+					},
 				)});`;
 			}
 			return `Object.defineProperty(exports,${_}'__esModule',${_}${getEsModuleValue(getObject)});`;
 		}
 		if (addNamespaceToStringTag) {
 			return `Object.defineProperty(exports,${_}Symbol.toStringTag,${_}${getToStringTagValue(
-				getObject
+				getObject,
 			)});`;
 		}
 	}
-	return '';
+	return "";
 }
 
 const getDefineProperty = (
 	name: string,
 	needsLiveBinding: boolean,
 	t: string,
-	{ _, getDirectReturnFunction, n }: GenerateCodeSnippets
+	{ _, getDirectReturnFunction, n }: GenerateCodeSnippets,
 ) => {
 	if (needsLiveBinding) {
 		const [left, right] = getDirectReturnFunction([], {
 			functionReturn: true,
 			lineBreakIndent: null,
-			name: null
+			name: null,
 		});
 		return (
 			`Object.defineProperty(exports,${_}k,${_}{${n}` +

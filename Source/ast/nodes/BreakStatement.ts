@@ -1,7 +1,10 @@
-import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
-import type Identifier from './Identifier';
-import type * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import {
+	type HasEffectsContext,
+	type InclusionContext,
+} from "../ExecutionContext";
+import type Identifier from "./Identifier";
+import type * as NodeType from "./NodeType";
+import { StatementBase } from "./shared/Node";
 
 export default class BreakStatement extends StatementBase {
 	declare label: Identifier | null;

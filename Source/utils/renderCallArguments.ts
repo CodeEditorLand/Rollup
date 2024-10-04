@@ -1,13 +1,16 @@
-import type MagicString from 'magic-string';
-import type CallExpression from '../ast/nodes/CallExpression';
-import type NewExpression from '../ast/nodes/NewExpression';
-import type { RenderOptions } from './renderHelpers';
-import { findFirstOccurrenceOutsideComment } from './renderHelpers';
+import type MagicString from "magic-string";
+
+import type CallExpression from "../ast/nodes/CallExpression";
+import type NewExpression from "../ast/nodes/NewExpression";
+import {
+	findFirstOccurrenceOutsideComment,
+	type RenderOptions,
+} from "./renderHelpers";
 
 export function renderCallArguments(
 	code: MagicString,
 	options: RenderOptions,
-	node: CallExpression | NewExpression
+	node: CallExpression | NewExpression,
 ): void {
 	if (node.arguments.length > 0) {
 		if (node.arguments[node.arguments.length - 1].included) {
@@ -16,7 +19,10 @@ export function renderCallArguments(
 			}
 		} else {
 			let lastIncludedIndex = node.arguments.length - 2;
-			while (lastIncludedIndex >= 0 && !node.arguments[lastIncludedIndex].included) {
+			while (
+				lastIncludedIndex >= 0 &&
+				!node.arguments[lastIncludedIndex].included
+			) {
 				lastIncludedIndex--;
 			}
 			if (lastIncludedIndex >= 0) {
@@ -26,15 +32,19 @@ export function renderCallArguments(
 				code.remove(
 					findFirstOccurrenceOutsideComment(
 						code.original,
-						',',
-						node.arguments[lastIncludedIndex].end
+						",",
+						node.arguments[lastIncludedIndex].end,
 					),
-					node.end - 1
+					node.end - 1,
 				);
 			} else {
 				code.remove(
-					findFirstOccurrenceOutsideComment(code.original, '(', node.callee.end) + 1,
-					node.end - 1
+					findFirstOccurrenceOutsideComment(
+						code.original,
+						"(",
+						node.callee.end,
+					) + 1,
+					node.end - 1,
 				);
 			}
 		}

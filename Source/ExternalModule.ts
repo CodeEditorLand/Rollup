@@ -1,9 +1,13 @@
-import ExternalVariable from './ast/variables/ExternalVariable';
-import type { CustomPluginOptions, ModuleInfo, NormalizedInputOptions } from './rollup/types';
-import { EMPTY_ARRAY } from './utils/blank';
-import { makeLegal } from './utils/identifierHelpers';
-import { LOGLEVEL_WARN } from './utils/logging';
-import { logUnusedExternalImports } from './utils/logs';
+import ExternalVariable from "./ast/variables/ExternalVariable";
+import type {
+	CustomPluginOptions,
+	ModuleInfo,
+	NormalizedInputOptions,
+} from "./rollup/types";
+import { EMPTY_ARRAY } from "./utils/blank";
+import { makeLegal } from "./utils/identifierHelpers";
+import { LOGLEVEL_WARN } from "./utils/logging";
+import { logUnusedExternalImports } from "./utils/logs";
 
 export default class ExternalModule {
 	readonly dynamicImporters: string[] = [];
@@ -22,10 +26,10 @@ export default class ExternalModule {
 	constructor(
 		private readonly options: NormalizedInputOptions,
 		public readonly id: string,
-		moduleSideEffects: boolean | 'no-treeshake',
+		moduleSideEffects: boolean | "no-treeshake",
 		meta: CustomPluginOptions,
 		public readonly renormalizeRenderPath: boolean,
-		attributes: Record<string, string>
+		attributes: Record<string, string>,
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[/\\]/).pop()!);
 
@@ -55,7 +59,7 @@ export default class ExternalModule {
 			isIncluded: null,
 			meta,
 			moduleSideEffects,
-			syntheticNamedExports: false
+			syntheticNamedExports: false,
 		};
 	}
 
@@ -83,7 +87,10 @@ export default class ExternalModule {
 		const unused = [...this.declarations]
 			.filter(
 				([name, declaration]) =>
-					name !== '*' && !declaration.included && !this.reexported && !declaration.referenced
+					name !== "*" &&
+					!declaration.included &&
+					!this.reexported &&
+					!declaration.referenced,
 			)
 			.map(([name]) => name);
 
@@ -91,11 +98,15 @@ export default class ExternalModule {
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			for (const importer of this.declarations.get(name)!.module.importers) {
+			for (const importer of this.declarations.get(name)!.module
+				.importers) {
 				importersSet.add(importer);
 			}
 		}
 		const importersArray = [...importersSet];
-		this.options.onLog(LOGLEVEL_WARN, logUnusedExternalImports(this.id, unused, importersArray));
+		this.options.onLog(
+			LOGLEVEL_WARN,
+			logUnusedExternalImports(this.id, unused, importersArray),
+		);
 	}
 }

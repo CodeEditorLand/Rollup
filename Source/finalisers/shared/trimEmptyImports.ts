@@ -1,7 +1,7 @@
-import type { ChunkDependency } from '../../Chunk';
+import type { ChunkDependency } from "../../Chunk";
 
 export default function trimEmptyImports(
-	dependencies: readonly ChunkDependency[]
+	dependencies: readonly ChunkDependency[],
 ): ChunkDependency[] {
 	let index = dependencies.length;
 

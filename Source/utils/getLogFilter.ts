@@ -1,15 +1,19 @@
-import type { RollupLog } from '../rollup/types';
-import type { GetLogFilter } from './getLogFilterType';
+import type { RollupLog } from "../rollup/types";
+import type { GetLogFilter } from "./getLogFilterType";
 
-export const getLogFilter: GetLogFilter = filters => {
+export const getLogFilter: GetLogFilter = (filters) => {
 	if (filters.length === 0) return () => true;
-	const normalizedFilters = filters.map(filter =>
-		filter.split('&').map(subFilter => {
-			const inverted = subFilter.startsWith('!');
+	const normalizedFilters = filters.map((filter) =>
+		filter.split("&").map((subFilter) => {
+			const inverted = subFilter.startsWith("!");
 			if (inverted) subFilter = subFilter.slice(1);
-			const [key, ...value] = subFilter.split(':');
-			return { inverted, key: key.split('.'), parts: value.join(':').split('*') };
-		})
+			const [key, ...value] = subFilter.split(":");
+			return {
+				inverted,
+				key: key.split("."),
+				parts: value.join(":").split("*"),
+			};
+		}),
 	);
 	return (log: RollupLog): boolean => {
 		nextIntersectedFilter: for (const intersectedFilters of normalizedFilters) {
@@ -25,7 +29,11 @@ export const getLogFilter: GetLogFilter = filters => {
 	};
 };
 
-const testFilter = (log: RollupLog, key: string[], parts: string[]): boolean => {
+const testFilter = (
+	log: RollupLog,
+	key: string[],
+	parts: string[],
+): boolean => {
 	let rawValue: any = log;
 	for (let index = 0; index < key.length; index++) {
 		if (!rawValue) {
@@ -37,7 +45,10 @@ const testFilter = (log: RollupLog, key: string[], parts: string[]): boolean => 
 		}
 		rawValue = rawValue[part];
 	}
-	let value = typeof rawValue === 'object' ? JSON.stringify(rawValue) : String(rawValue);
+	let value =
+		typeof rawValue === "object"
+			? JSON.stringify(rawValue)
+			: String(rawValue);
 	if (parts.length === 1) {
 		return value === parts[0];
 	}

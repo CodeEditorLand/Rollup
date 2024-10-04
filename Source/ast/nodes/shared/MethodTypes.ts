@@ -1,25 +1,34 @@
-import type { HasEffectsContext } from '../../ExecutionContext';
-import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
+import type { HasEffectsContext } from "../../ExecutionContext";
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-	NODE_INTERACTION_UNKNOWN_CALL
-} from '../../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
+	NODE_INTERACTION_UNKNOWN_CALL,
+	type NodeInteraction,
+	type NodeInteractionCalled,
+} from "../../NodeInteractions";
+import {
+	EMPTY_PATH,
+	UNKNOWN_INTEGER_PATH,
+	type ObjectPath,
+} from "../../utils/PathTracker";
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
 	UNKNOWN_LITERAL_NUMBER,
-	UNKNOWN_LITERAL_STRING
-} from '../../values';
-import { ExpressionEntity, UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+	UNKNOWN_LITERAL_STRING,
+} from "../../values";
+import {
+	ExpressionEntity,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
+} from "./Expression";
 
 type MethodDescription = {
 	callsArgs: number[] | null;
-	mutatesSelfAsArray: boolean | 'deopt-only';
+	mutatesSelfAsArray: boolean | "deopt-only";
 } & (
 	| {
-			returns: 'self' | (() => ExpressionEntity);
+			returns: "self" | (() => ExpressionEntity);
 			returnsPrimitive: null;
 	  }
 	| {
@@ -33,32 +42,39 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizeArgumentsOnInteractionAtPath({ args, type }: NodeInteraction, path: ObjectPath): void {
-		if (type === INTERACTION_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
+	deoptimizeArgumentsOnInteractionAtPath(
+		{ args, type }: NodeInteraction,
+		path: ObjectPath,
+	): void {
+		if (
+			type === INTERACTION_CALLED &&
+			path.length === 0 &&
+			this.description.mutatesSelfAsArray
+		) {
 			args[0]?.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		{ args }: NodeInteractionCalled
+		{ args }: NodeInteractionCalled,
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return UNKNOWN_RETURN_EXPRESSION;
 		}
 		return [
 			this.description.returnsPrimitive ||
-				(this.description.returns === 'self'
+				(this.description.returns === "self"
 					? args[0] || UNKNOWN_EXPRESSION
 					: this.description.returns()),
-			false
+			false,
 		];
 	}
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		const { type } = interaction;
 		if (path.length > (type === INTERACTION_ACCESSED ? 1 : 0)) {
@@ -71,7 +87,7 @@ export class Method extends ExpressionEntity {
 				args[0]?.hasEffectsOnInteractionAtPath(
 					UNKNOWN_INTEGER_PATH,
 					NODE_INTERACTION_UNKNOWN_ASSIGNMENT,
-					context
+					context,
 				)
 			) {
 				return true;
@@ -82,7 +98,7 @@ export class Method extends ExpressionEntity {
 						args[argumentIndex + 1]?.hasEffectsOnInteractionAtPath(
 							EMPTY_PATH,
 							NODE_INTERACTION_UNKNOWN_CALL,
-							context
+							context,
 						)
 					) {
 						return true;
@@ -99,8 +115,8 @@ export const METHOD_RETURNS_BOOLEAN = [
 		callsArgs: null,
 		mutatesSelfAsArray: false,
 		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
-	})
+		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN,
+	}),
 ];
 
 export const METHOD_RETURNS_STRING = [
@@ -108,8 +124,8 @@ export const METHOD_RETURNS_STRING = [
 		callsArgs: null,
 		mutatesSelfAsArray: false,
 		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_STRING
-	})
+		returnsPrimitive: UNKNOWN_LITERAL_STRING,
+	}),
 ];
 
 export const METHOD_RETURNS_NUMBER = [
@@ -117,8 +133,8 @@ export const METHOD_RETURNS_NUMBER = [
 		callsArgs: null,
 		mutatesSelfAsArray: false,
 		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
-	})
+		returnsPrimitive: UNKNOWN_LITERAL_NUMBER,
+	}),
 ];
 
 export const METHOD_RETURNS_UNKNOWN = [
@@ -126,6 +142,6 @@ export const METHOD_RETURNS_UNKNOWN = [
 		callsArgs: null,
 		mutatesSelfAsArray: false,
 		returns: null,
-		returnsPrimitive: UNKNOWN_EXPRESSION
-	})
+		returnsPrimitive: UNKNOWN_EXPRESSION,
+	}),
 ];

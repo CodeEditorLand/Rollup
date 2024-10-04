@@ -12,14 +12,19 @@ import type {
 	OutputPluginOption,
 	Plugin,
 	RollupLog,
-	WarningHandlerWithDefault
-} from '../../rollup/types';
-import { asyncFlatten } from '../asyncFlatten';
-import { EMPTY_ARRAY } from '../blank';
-import { LOGLEVEL_DEBUG, LOGLEVEL_ERROR, LOGLEVEL_WARN, logLevelPriority } from '../logging';
-import { error, logInvalidOption, logUnknownOption } from '../logs';
-import { printQuotedStringList } from '../printStringList';
-import relativeId from '../relativeId';
+	WarningHandlerWithDefault,
+} from "../../rollup/types";
+import { asyncFlatten } from "../asyncFlatten";
+import { EMPTY_ARRAY } from "../blank";
+import {
+	LOGLEVEL_DEBUG,
+	LOGLEVEL_ERROR,
+	LOGLEVEL_WARN,
+	logLevelPriority,
+} from "../logging";
+import { error, logInvalidOption, logUnknownOption } from "../logs";
+import { printQuotedStringList } from "../printStringList";
+import relativeId from "../relativeId";
 
 export interface GenericConfigObject {
 	[key: string]: unknown;
@@ -28,8 +33,8 @@ export interface GenericConfigObject {
 export const getOnLog = (
 	config: InputOptions,
 	logLevel: LogLevelOption,
-	printLog = defaultPrintLog
-): NormalizedInputOptions['onLog'] => {
+	printLog = defaultPrintLog,
+): NormalizedInputOptions["onLog"] => {
 	const { onwarn, onLog } = config;
 	const defaultOnLog = getDefaultOnLog(printLog, onwarn);
 	if (onLog) {
@@ -47,34 +52,41 @@ export const getOnLog = (
 	return defaultOnLog;
 };
 
-const getDefaultOnLog = (printLog: LogHandler, onwarn?: WarningHandlerWithDefault): LogHandler =>
+const getDefaultOnLog = (
+	printLog: LogHandler,
+	onwarn?: WarningHandlerWithDefault,
+): LogHandler =>
 	onwarn
 		? (level, log) => {
 				if (level === LOGLEVEL_WARN) {
-					onwarn(addLogToString(log), warning => printLog(LOGLEVEL_WARN, normalizeLog(warning)));
+					onwarn(addLogToString(log), (warning) =>
+						printLog(LOGLEVEL_WARN, normalizeLog(warning)),
+					);
 				} else {
 					printLog(level, log);
 				}
-		  }
+			}
 		: printLog;
 
 const addLogToString = (log: RollupLog): RollupLog => {
-	Object.defineProperty(log, 'toString', {
+	Object.defineProperty(log, "toString", {
 		value: () => getExtendedLogMessage(log),
-		writable: true
+		writable: true,
 	});
 	return log;
 };
 
-export const normalizeLog = (log: RollupLog | string | (() => RollupLog | string)): RollupLog =>
-	typeof log === 'string'
+export const normalizeLog = (
+	log: RollupLog | string | (() => RollupLog | string),
+): RollupLog =>
+	typeof log === "string"
 		? { message: log }
-		: typeof log === 'function'
-		? normalizeLog(log())
-		: log;
+		: typeof log === "function"
+			? normalizeLog(log())
+			: log;
 
 const getExtendedLogMessage = (log: RollupLog): string => {
-	let prefix = '';
+	let prefix = "";
 
 	if (log.plugin) {
 		prefix += `(${log.plugin} plugin) `;
@@ -106,14 +118,21 @@ export function warnUnknownOptions(
 	validOptions: readonly string[],
 	optionType: string,
 	log: LogHandler,
-	ignoredKeys = /$./
+	ignoredKeys = /$./,
 ): void {
 	const validOptionSet = new Set(validOptions);
 	const unknownOptions = Object.keys(passedOptions).filter(
-		key => !(validOptionSet.has(key) || ignoredKeys.test(key))
+		(key) => !(validOptionSet.has(key) || ignoredKeys.test(key)),
 	);
 	if (unknownOptions.length > 0) {
-		log(LOGLEVEL_WARN, logUnknownOption(optionType, unknownOptions, [...validOptionSet].sort()));
+		log(
+			LOGLEVEL_WARN,
+			logUnknownOption(
+				optionType,
+				unknownOptions,
+				[...validOptionSet].sort(),
+			),
+		);
 	}
 }
 
@@ -121,7 +140,7 @@ type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
 
 export const treeshakePresets: {
 	[key in NonNullable<
-		ObjectValue<InputOptions['treeshake']>['preset']
+		ObjectValue<InputOptions["treeshake"]>["preset"]
 	>]: NormalizedTreeshakingOptions;
 } = {
 	recommended: {
@@ -131,7 +150,7 @@ export const treeshakePresets: {
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: false
+		unknownGlobalSideEffects: false,
 	},
 	safest: {
 		annotations: true,
@@ -140,7 +159,7 @@ export const treeshakePresets: {
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: true
+		unknownGlobalSideEffects: true,
 	},
 	smallest: {
 		annotations: true,
@@ -149,29 +168,29 @@ export const treeshakePresets: {
 		moduleSideEffects: () => false,
 		propertyReadSideEffects: false,
 		tryCatchDeoptimization: false,
-		unknownGlobalSideEffects: false
-	}
+		unknownGlobalSideEffects: false,
+	},
 };
 
 export const generatedCodePresets: {
 	[key in NonNullable<
-		ObjectValue<OutputOptions['generatedCode']>['preset']
-	>]: NormalizedOutputOptions['generatedCode'];
+		ObjectValue<OutputOptions["generatedCode"]>["preset"]
+	>]: NormalizedOutputOptions["generatedCode"];
 } = {
 	es2015: {
 		arrowFunctions: true,
 		constBindings: true,
 		objectShorthand: true,
 		reservedNamesAsProps: true,
-		symbols: true
+		symbols: true,
 	},
 	es5: {
 		arrowFunctions: false,
 		constBindings: false,
 		objectShorthand: false,
 		reservedNamesAsProps: true,
-		symbols: false
-	}
+		symbols: false,
+	},
 };
 
 type ObjectOptionWithPresets =
@@ -179,17 +198,19 @@ type ObjectOptionWithPresets =
 	| Partial<NormalizedGeneratedCodeOptions>;
 
 export const objectifyOption = (value: unknown): Record<string, unknown> =>
-	value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+	value && typeof value === "object"
+		? (value as Record<string, unknown>)
+		: {};
 
 export const objectifyOptionWithPresets =
 	<T extends ObjectOptionWithPresets>(
 		presets: Record<string, T>,
 		optionName: string,
 		urlSnippet: string,
-		additionalValues: string
+		additionalValues: string,
 	) =>
 	(value: unknown): Record<string, unknown> => {
-		if (typeof value === 'string') {
+		if (typeof value === "string") {
 			const preset = presets[value];
 			if (preset) {
 				return preset;
@@ -199,10 +220,10 @@ export const objectifyOptionWithPresets =
 					optionName,
 					urlSnippet,
 					`valid values are ${additionalValues}${printQuotedStringList(
-						Object.keys(presets)
+						Object.keys(presets),
 					)}. You can also supply an object for more fine-grained control`,
-					value
-				)
+					value,
+				),
 			);
 		}
 		return objectifyOption(value);
@@ -213,7 +234,7 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 	presets: Record<string, T>,
 	optionName: string,
 	urlSnippet: string,
-	additionalValues: string
+	additionalValues: string,
 ): Record<string, unknown> => {
 	const presetName: string | undefined = (value as any)?.preset;
 	if (presetName) {
@@ -226,12 +247,17 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 					`${optionName}.preset`,
 					urlSnippet,
 					`valid values are ${printQuotedStringList(Object.keys(presets))}`,
-					presetName
-				)
+					presetName,
+				),
 			);
 		}
 	}
-	return objectifyOptionWithPresets(presets, optionName, urlSnippet, additionalValues)(value);
+	return objectifyOptionWithPresets(
+		presets,
+		optionName,
+		urlSnippet,
+		additionalValues,
+	)(value);
 };
 
 export const normalizePluginOption: {

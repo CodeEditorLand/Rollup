@@ -1,16 +1,18 @@
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
+import type { HasEffectsContext } from "../ExecutionContext";
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED
-} from '../NodeInteractions';
-import type { LiteralValueOrUnknown } from '../nodes/shared/Expression';
-import { UnknownValue } from '../nodes/shared/Expression';
-import { getGlobalAtPath } from '../nodes/shared/knownGlobals';
-import type { ObjectPath, PathTracker } from '../utils/PathTracker';
-import Variable from './Variable';
+	INTERACTION_CALLED,
+	type NodeInteraction,
+} from "../NodeInteractions";
+import {
+	UnknownValue,
+	type LiteralValueOrUnknown,
+} from "../nodes/shared/Expression";
+import { getGlobalAtPath } from "../nodes/shared/knownGlobals";
+import type { ObjectPath, PathTracker } from "../utils/PathTracker";
+import Variable from "./Variable";
 
 export default class GlobalVariable extends Variable {
 	// Ensure we use live-bindings for globals as we do not know if they have
@@ -20,7 +22,7 @@ export default class GlobalVariable extends Variable {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	) {
 		switch (interaction.type) {
 			// While there is no point in testing these cases as at the moment, they
@@ -28,7 +30,11 @@ export default class GlobalVariable extends Variable {
 			case INTERACTION_ACCESSED:
 			case INTERACTION_ASSIGNED: {
 				if (!getGlobalAtPath([this.name, ...path].slice(0, -1))) {
-					super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+					super.deoptimizeArgumentsOnInteractionAtPath(
+						interaction,
+						path,
+						recursionTracker,
+					);
 				}
 				return;
 			}
@@ -37,7 +43,11 @@ export default class GlobalVariable extends Variable {
 				if (globalAtPath) {
 					globalAtPath.deoptimizeArgumentsOnCall(interaction);
 				} else {
-					super.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker);
+					super.deoptimizeArgumentsOnInteractionAtPath(
+						interaction,
+						path,
+						recursionTracker,
+					);
 				}
 				return;
 			}
@@ -47,7 +57,7 @@ export default class GlobalVariable extends Variable {
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		_recursionTracker: PathTracker,
-		_origin: DeoptimizableEntity
+		_origin: DeoptimizableEntity,
 	): LiteralValueOrUnknown {
 		const globalAtPath = getGlobalAtPath([this.name, ...path]);
 		return globalAtPath ? globalAtPath.getLiteralValue() : UnknownValue;
@@ -56,13 +66,16 @@ export default class GlobalVariable extends Variable {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
 				if (path.length === 0) {
 					// Technically, "undefined" is a global variable of sorts
-					return this.name !== 'undefined' && !getGlobalAtPath([this.name]);
+					return (
+						this.name !== "undefined" &&
+						!getGlobalAtPath([this.name])
+					);
 				}
 				return !getGlobalAtPath([this.name, ...path].slice(0, -1));
 			}
@@ -71,7 +84,10 @@ export default class GlobalVariable extends Variable {
 			}
 			case INTERACTION_CALLED: {
 				const globalAtPath = getGlobalAtPath([this.name, ...path]);
-				return !globalAtPath || globalAtPath.hasEffectsWhenCalled(interaction, context);
+				return (
+					!globalAtPath ||
+					globalAtPath.hasEffectsWhenCalled(interaction, context)
+				);
 			}
 		}
 	}

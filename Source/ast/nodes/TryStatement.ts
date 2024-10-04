@@ -1,9 +1,13 @@
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type BlockStatement from './BlockStatement';
-import type CatchClause from './CatchClause';
-import type * as NodeType from './NodeType';
-import { INCLUDE_PARAMETERS, type IncludeChildren, StatementBase } from './shared/Node';
+import type { NormalizedTreeshakingOptions } from "../../rollup/types";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import type BlockStatement from "./BlockStatement";
+import type CatchClause from "./CatchClause";
+import type * as NodeType from "./NodeType";
+import {
+	INCLUDE_PARAMETERS,
+	StatementBase,
+	type IncludeChildren,
+} from "./shared/Node";
 
 export default class TryStatement extends StatementBase {
 	declare block: BlockStatement;
@@ -16,13 +20,20 @@ export default class TryStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return (
-			((this.scope.context.options.treeshake as NormalizedTreeshakingOptions).tryCatchDeoptimization
+			((
+				this.scope.context.options
+					.treeshake as NormalizedTreeshakingOptions
+			).tryCatchDeoptimization
 				? this.block.body.length > 0
-				: this.block.hasEffects(context)) || !!this.finalizer?.hasEffects(context)
+				: this.block.hasEffects(context)) ||
+			!!this.finalizer?.hasEffects(context)
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		const tryCatchDeoptimization = (
 			this.scope.context.options.treeshake as NormalizedTreeshakingOptions
 		)?.tryCatchDeoptimization;
@@ -32,7 +43,9 @@ export default class TryStatement extends StatementBase {
 			this.directlyIncluded = true;
 			this.block.include(
 				context,
-				tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
+				tryCatchDeoptimization
+					? INCLUDE_PARAMETERS
+					: includeChildrenRecursively,
 			);
 			if (includedLabels.size > 0) {
 				this.includedLabelsAfterBlock = [...includedLabels];

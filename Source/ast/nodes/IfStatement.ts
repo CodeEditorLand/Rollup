@@ -1,24 +1,31 @@
-import type MagicString from 'magic-string';
-import type { RenderOptions } from '../../utils/renderHelpers';
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { type HasEffectsContext, type InclusionContext } from '../ExecutionContext';
-import TrackingScope from '../scopes/TrackingScope';
-import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
-import BlockStatement from './BlockStatement';
-import type Identifier from './Identifier';
-import * as NodeType from './NodeType';
-import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import type MagicString from "magic-string";
+
+import type { RenderOptions } from "../../utils/renderHelpers";
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
 import {
+	type HasEffectsContext,
+	type InclusionContext,
+} from "../ExecutionContext";
+import TrackingScope from "../scopes/TrackingScope";
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from "../utils/PathTracker";
+import BlockStatement from "./BlockStatement";
+import type Identifier from "./Identifier";
+import * as NodeType from "./NodeType";
+import { UnknownValue, type LiteralValueOrUnknown } from "./shared/Expression";
+import {
+	StatementBase,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
-	StatementBase,
-	type StatementNode
-} from './shared/Node';
+	type StatementNode,
+} from "./shared/Node";
 
-const unset = Symbol('unset');
+const unset = Symbol("unset");
 
-export default class IfStatement extends StatementBase implements DeoptimizableEntity {
+export default class IfStatement
+	extends StatementBase
+	implements DeoptimizableEntity
+{
 	declare alternate: StatementNode | null;
 	declare consequent: StatementNode;
 	declare test: ExpressionNode;
@@ -37,7 +44,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			return true;
 		}
 		const testValue = this.getTestValue();
-		if (typeof testValue === 'symbol') {
+		if (typeof testValue === "symbol") {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
 			// eslint-disable-next-line unicorn/consistent-destructuring
@@ -49,16 +56,21 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			context.brokenFlow = context.brokenFlow && consequentBrokenFlow;
 			return false;
 		}
-		return testValue ? this.consequent.hasEffects(context) : !!this.alternate?.hasEffects(context);
+		return testValue
+			? this.consequent.hasEffects(context)
+			: !!this.alternate?.hasEffects(context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
 		} else {
 			const testValue = this.getTestValue();
-			if (typeof testValue === 'symbol') {
+			if (typeof testValue === "symbol") {
 				this.includeUnknownTest(context);
 			} else {
 				this.includeKnownTest(context, testValue);
@@ -67,26 +79,28 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		this.consequentScope = new TrackingScope(this.scope, this.scope.context);
-		this.consequent = new (this.scope.context.getNodeConstructor(esTreeNode.consequent.type))(
-			esTreeNode.consequent,
-			this,
-			this.consequentScope
+		this.consequentScope = new TrackingScope(
+			this.scope,
+			this.scope.context,
 		);
+		this.consequent = new (this.scope.context.getNodeConstructor(
+			esTreeNode.consequent.type,
+		))(esTreeNode.consequent, this, this.consequentScope);
 		if (esTreeNode.alternate) {
-			this.alternateScope = new TrackingScope(this.scope, this.scope.context);
-			this.alternate = new (this.scope.context.getNodeConstructor(esTreeNode.alternate.type))(
-				esTreeNode.alternate,
-				this,
-				this.alternateScope
+			this.alternateScope = new TrackingScope(
+				this.scope,
+				this.scope.context,
 			);
+			this.alternate = new (this.scope.context.getNodeConstructor(
+				esTreeNode.alternate.type,
+			))(esTreeNode.alternate, this, this.alternateScope);
 		}
 		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
 		const {
-			snippets: { getPropertyAccess }
+			snippets: { getPropertyAccess },
 		} = options;
 		// Note that unknown test values are always included
 		const testValue = this.getTestValue();
@@ -98,17 +112,32 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		} else {
 			code.remove(this.start, this.consequent.start);
 		}
-		if (this.consequent.included && (noTreeshake || typeof testValue === 'symbol' || testValue)) {
+		if (
+			this.consequent.included &&
+			(noTreeshake || typeof testValue === "symbol" || testValue)
+		) {
 			this.consequent.render(code, options);
 		} else {
-			code.overwrite(this.consequent.start, this.consequent.end, includesIfElse ? ';' : '');
-			hoistedDeclarations.push(...this.consequentScope.hoistedDeclarations);
+			code.overwrite(
+				this.consequent.start,
+				this.consequent.end,
+				includesIfElse ? ";" : "",
+			);
+			hoistedDeclarations.push(
+				...this.consequentScope.hoistedDeclarations,
+			);
 		}
 		if (this.alternate) {
-			if (this.alternate.included && (noTreeshake || typeof testValue === 'symbol' || !testValue)) {
+			if (
+				this.alternate.included &&
+				(noTreeshake || typeof testValue === "symbol" || !testValue)
+			) {
 				if (includesIfElse) {
-					if (code.original.charCodeAt(this.alternate.start - 1) === 101) {
-						code.prependLeft(this.alternate.start, ' ');
+					if (
+						code.original.charCodeAt(this.alternate.start - 1) ===
+						101
+					) {
+						code.prependLeft(this.alternate.start, " ");
 					}
 				} else {
 					code.remove(this.consequent.end, this.alternate.start);
@@ -116,14 +145,20 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				this.alternate.render(code, options);
 			} else {
 				if (includesIfElse && this.shouldKeepAlternateBranch()) {
-					code.overwrite(this.alternate.start, this.end, ';');
+					code.overwrite(this.alternate.start, this.end, ";");
 				} else {
 					code.remove(this.consequent.end, this.end);
 				}
-				hoistedDeclarations.push(...this.alternateScope!.hoistedDeclarations);
+				hoistedDeclarations.push(
+					...this.alternateScope!.hoistedDeclarations,
+				);
 			}
 		}
-		this.renderHoistedDeclarations(hoistedDeclarations, code, getPropertyAccess);
+		this.renderHoistedDeclarations(
+			hoistedDeclarations,
+			code,
+			getPropertyAccess,
+		);
 	}
 
 	protected applyDeoptimizations() {}
@@ -133,18 +168,23 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			return (this.testValue = this.test.getLiteralValueAtPath(
 				EMPTY_PATH,
 				SHARED_RECURSION_TRACKER,
-				this
+				this,
 			));
 		}
 		return this.testValue;
 	}
 
-	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {
+	private includeKnownTest(
+		context: InclusionContext,
+		testValue: LiteralValueOrUnknown,
+	) {
 		if (this.test.shouldBeIncluded(context)) {
 			this.test.include(context, false);
 		}
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false, { asSingleStatement: true });
+			this.consequent.include(context, false, {
+				asSingleStatement: true,
+			});
 		}
 		if (!testValue && this.alternate?.shouldBeIncluded(context)) {
 			this.alternate.include(context, false, { asSingleStatement: true });
@@ -152,8 +192,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	private includeRecursively(
-		includeChildrenRecursively: true | 'variables',
-		context: InclusionContext
+		includeChildrenRecursively: true | "variables",
+		context: InclusionContext,
 	) {
 		this.test.include(context, includeChildrenRecursively);
 		this.consequent.include(context, includeChildrenRecursively);
@@ -165,7 +205,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		const { brokenFlow } = context;
 		let consequentBrokenFlow = false;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false, { asSingleStatement: true });
+			this.consequent.include(context, false, {
+				asSingleStatement: true,
+			});
 			// eslint-disable-next-line unicorn/consistent-destructuring
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
@@ -180,22 +222,29 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private renderHoistedDeclarations(
 		hoistedDeclarations: readonly Identifier[],
 		code: MagicString,
-		getPropertyAccess: (name: string) => string
+		getPropertyAccess: (name: string) => string,
 	) {
 		const hoistedVariables = [
 			...new Set(
-				hoistedDeclarations.map(identifier => {
+				hoistedDeclarations.map((identifier) => {
 					const variable = identifier.variable!;
-					return variable.included ? variable.getName(getPropertyAccess) : '';
-				})
-			)
+					return variable.included
+						? variable.getName(getPropertyAccess)
+						: "";
+				}),
+			),
 		]
 			.filter(Boolean)
-			.join(', ');
+			.join(", ");
 		if (hoistedVariables) {
 			const parentType = this.parent.type;
-			const needsBraces = parentType !== NodeType.Program && parentType !== NodeType.BlockStatement;
-			code.prependRight(this.start, `${needsBraces ? '{ ' : ''}var ${hoistedVariables}; `);
+			const needsBraces =
+				parentType !== NodeType.Program &&
+				parentType !== NodeType.BlockStatement;
+			code.prependRight(
+				this.start,
+				`${needsBraces ? "{ " : ""}var ${hoistedVariables}; `,
+			);
 			if (needsBraces) {
 				code.appendLeft(this.end, ` }`);
 			}
@@ -205,7 +254,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private shouldKeepAlternateBranch() {
 		let currentParent = this.parent;
 		do {
-			if (currentParent instanceof IfStatement && currentParent.alternate) {
+			if (
+				currentParent instanceof IfStatement &&
+				currentParent.alternate
+			) {
 				return true;
 			}
 			if (currentParent instanceof BlockStatement) {

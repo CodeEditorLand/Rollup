@@ -1,19 +1,20 @@
-import type MagicString from 'magic-string';
-import type { NormalizedTreeshakingOptions } from '../../rollup/types';
-import type { RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
-import { UnknownKey } from '../utils/PathTracker';
-import type LocalVariable from '../variables/LocalVariable';
-import type * as NodeType from './NodeType';
-import { Flag, isFlagSet, setFlag } from './shared/BitFlags';
-import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
-import MethodBase from './shared/MethodBase';
-import type { ExpressionNode } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type MagicString from "magic-string";
+
+import type { NormalizedTreeshakingOptions } from "../../rollup/types";
+import type { RenderOptions } from "../../utils/renderHelpers";
+import type { HasEffectsContext } from "../ExecutionContext";
+import { UnknownKey } from "../utils/PathTracker";
+import type LocalVariable from "../variables/LocalVariable";
+import type * as NodeType from "./NodeType";
+import { Flag, isFlagSet, setFlag } from "./shared/BitFlags";
+import { UNKNOWN_EXPRESSION, type ExpressionEntity } from "./shared/Expression";
+import MethodBase from "./shared/MethodBase";
+import type { ExpressionNode } from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class Property extends MethodBase implements PatternNode {
 	declare key: ExpressionNode;
-	declare kind: 'init' | 'get' | 'set';
+	declare kind: "init" | "get" | "set";
 	declare type: NodeType.tProperty;
 	private declarationInit: ExpressionEntity | null = null;
 
@@ -44,7 +45,8 @@ export default class Property extends MethodBase implements PatternNode {
 			this.scope.context.options.treeshake as NormalizedTreeshakingOptions
 		).propertyReadSideEffects;
 		return (
-			(this.parent.type === 'ObjectPattern' && propertyReadSideEffects === 'always') ||
+			(this.parent.type === "ObjectPattern" &&
+				propertyReadSideEffects === "always") ||
 			this.key.hasEffects(context) ||
 			this.value.hasEffects(context)
 		);
@@ -58,7 +60,9 @@ export default class Property extends MethodBase implements PatternNode {
 		if (!this.shorthand) {
 			this.key.render(code, options);
 		}
-		this.value.render(code, options, { isShorthandProperty: this.shorthand });
+		this.value.render(code, options, {
+			isShorthandProperty: this.shorthand,
+		});
 	}
 
 	protected applyDeoptimizations(): void {

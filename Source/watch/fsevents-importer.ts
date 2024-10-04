@@ -1,11 +1,11 @@
-import type FsEvents from 'fsevents';
+import type FsEvents from "fsevents";
 
 let fsEvents: typeof FsEvents;
 let fsEventsImportError: Error | undefined;
 
 export async function loadFsEvents(): Promise<void> {
 	try {
-		({ default: fsEvents } = await import('fsevents'));
+		({ default: fsEvents } = await import("fsevents"));
 	} catch (error: any) {
 		fsEventsImportError = error;
 	}

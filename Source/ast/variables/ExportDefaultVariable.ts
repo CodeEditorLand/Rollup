@@ -1,11 +1,11 @@
-import type { AstContext } from '../../Module';
-import ClassDeclaration from '../nodes/ClassDeclaration';
-import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import FunctionDeclaration from '../nodes/FunctionDeclaration';
-import Identifier, { type IdentifierWithVariable } from '../nodes/Identifier';
-import LocalVariable from './LocalVariable';
-import UndefinedVariable from './UndefinedVariable';
-import type Variable from './Variable';
+import type { AstContext } from "../../Module";
+import ClassDeclaration from "../nodes/ClassDeclaration";
+import type ExportDefaultDeclaration from "../nodes/ExportDefaultDeclaration";
+import FunctionDeclaration from "../nodes/FunctionDeclaration";
+import Identifier, { type IdentifierWithVariable } from "../nodes/Identifier";
+import LocalVariable from "./LocalVariable";
+import UndefinedVariable from "./UndefinedVariable";
+import type Variable from "./Variable";
 
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId = false;
@@ -16,12 +16,18 @@ export default class ExportDefaultVariable extends LocalVariable {
 	constructor(
 		name: string,
 		exportDefaultDeclaration: ExportDefaultDeclaration,
-		context: AstContext
+		context: AstContext,
 	) {
-		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration, context);
+		super(
+			name,
+			exportDefaultDeclaration,
+			exportDefaultDeclaration.declaration,
+			context,
+		);
 		const declaration = exportDefaultDeclaration.declaration;
 		if (
-			(declaration instanceof FunctionDeclaration || declaration instanceof ClassDeclaration) &&
+			(declaration instanceof FunctionDeclaration ||
+				declaration instanceof ClassDeclaration) &&
 			declaration.id
 		) {
 			this.hasId = true;
@@ -52,7 +58,9 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getBaseVariableName(): string {
 		const original = this.getOriginalVariable();
-		return original === this ? super.getBaseVariableName() : original.getBaseVariableName();
+		return original === this
+			? super.getBaseVariableName()
+			: original.getBaseVariableName();
 	}
 
 	getDirectOriginalVariable(): Variable | null {
@@ -63,7 +71,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 					this.originalId.variable.isReassigned ||
 					this.originalId.variable instanceof UndefinedVariable ||
 					// this avoids a circular dependency
-					'syntheticNamespace' in this.originalId.variable
+					"syntheticNamespace" in this.originalId.variable
 				))
 			? this.originalId.variable
 			: null;
@@ -85,8 +93,13 @@ export default class ExportDefaultVariable extends LocalVariable {
 		do {
 			checkedVariables.add(original);
 			currentVariable = original;
-			original = (currentVariable as ExportDefaultVariable).getDirectOriginalVariable();
-		} while (original instanceof ExportDefaultVariable && !checkedVariables.has(original));
+			original = (
+				currentVariable as ExportDefaultVariable
+			).getDirectOriginalVariable();
+		} while (
+			original instanceof ExportDefaultVariable &&
+			!checkedVariables.has(original)
+		);
 		return (this.originalVariable = original || currentVariable);
 	}
 }

@@ -1,19 +1,24 @@
-import type MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
-import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
+import type MagicString from "magic-string";
+
+import { BLANK } from "../../utils/blank";
+import { isReassignedExportsMember } from "../../utils/reassignedExportsMember";
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
-	type RenderOptions
-} from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { ObjectPath } from '../utils/PathTracker';
-import { UNDEFINED_EXPRESSION } from '../values';
-import ClassExpression from './ClassExpression';
-import Identifier from './Identifier';
-import * as NodeType from './NodeType';
-import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+	type RenderOptions,
+} from "../../utils/renderHelpers";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import type { ObjectPath } from "../utils/PathTracker";
+import { UNDEFINED_EXPRESSION } from "../values";
+import ClassExpression from "./ClassExpression";
+import Identifier from "./Identifier";
+import * as NodeType from "./NodeType";
+import {
+	NodeBase,
+	type ExpressionNode,
+	type IncludeChildren,
+} from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class VariableDeclarator extends NodeBase {
 	declare id: PatternNode;
@@ -35,7 +40,10 @@ export default class VariableDeclarator extends NodeBase {
 		return initEffect || this.id.hasEffects(context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		const { deoptimized, id, init } = this;
 		if (!deoptimized) this.applyDeoptimizations();
 		this.included = true;
@@ -53,19 +61,31 @@ export default class VariableDeclarator extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		const {
 			exportNamesByVariable,
-			snippets: { _, getPropertyAccess }
+			snippets: { _, getPropertyAccess },
 		} = options;
 		const { end, id, init, start } = this;
 		const renderId = id.included;
 		if (renderId) {
 			id.render(code, options);
 		} else {
-			const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', id.end);
-			code.remove(start, findNonWhiteSpace(code.original, operatorPos + 1));
+			const operatorPos = findFirstOccurrenceOutsideComment(
+				code.original,
+				"=",
+				id.end,
+			);
+			code.remove(
+				start,
+				findNonWhiteSpace(code.original, operatorPos + 1),
+			);
 		}
 		if (init) {
-			if (id instanceof Identifier && init instanceof ClassExpression && !init.id) {
-				const renderedVariable = id.variable!.getName(getPropertyAccess);
+			if (
+				id instanceof Identifier &&
+				init instanceof ClassExpression &&
+				!init.id
+			) {
+				const renderedVariable =
+					id.variable!.getName(getPropertyAccess);
 				if (renderedVariable !== id.name) {
 					code.appendLeft(init.start + 5, ` ${id.name}`);
 				}
@@ -73,7 +93,12 @@ export default class VariableDeclarator extends NodeBase {
 			init.render(
 				code,
 				options,
-				renderId ? BLANK : { renderedSurroundingElement: NodeType.ExpressionStatement }
+				renderId
+					? BLANK
+					: {
+							renderedSurroundingElement:
+								NodeType.ExpressionStatement,
+						},
 			);
 		} else if (
 			id instanceof Identifier &&
@@ -86,7 +111,12 @@ export default class VariableDeclarator extends NodeBase {
 	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		const { id, init } = this;
-		if (init && id instanceof Identifier && init instanceof ClassExpression && !init.id) {
+		if (
+			init &&
+			id instanceof Identifier &&
+			init instanceof ClassExpression &&
+			!init.id
+		) {
 			const { name, variable } = id;
 			for (const accessedVariable of init.scope.accessedOutsideVariables.values()) {
 				if (accessedVariable !== variable) {

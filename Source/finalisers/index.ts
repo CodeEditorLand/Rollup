@@ -1,13 +1,14 @@
-import type { Bundle as MagicStringBundle } from 'magic-string';
-import type { ChunkDependency, ChunkExports } from '../Chunk';
-import type { LogHandler, NormalizedOutputOptions } from '../rollup/types';
-import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
-import amd from './amd';
-import cjs from './cjs';
-import es from './es';
-import iife from './iife';
-import system from './system';
-import umd from './umd';
+import type { Bundle as MagicStringBundle } from "magic-string";
+
+import type { ChunkDependency, ChunkExports } from "../Chunk";
+import type { LogHandler, NormalizedOutputOptions } from "../rollup/types";
+import type { GenerateCodeSnippets } from "../utils/generateCodeSnippets";
+import amd from "./amd";
+import cjs from "./cjs";
+import es from "./es";
+import iife from "./iife";
+import system from "./system";
+import umd from "./umd";
 
 export interface FinaliserOptions {
 	accessedGlobals: Set<string>;
@@ -30,7 +31,7 @@ export interface FinaliserOptions {
 export type Finaliser = (
 	magicString: MagicStringBundle,
 	finaliserOptions: FinaliserOptions,
-	options: NormalizedOutputOptions
+	options: NormalizedOutputOptions,
 ) => void;
 
 export default { amd, cjs, es, iife, system, umd } as {

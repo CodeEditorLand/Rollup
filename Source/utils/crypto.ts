@@ -1,10 +1,10 @@
-import { xxhashBase64Url } from '../../native';
+import { xxhashBase64Url } from "../../native";
 
 let textEncoder: TextEncoder;
 export function getXxhash(input: string | Uint8Array) {
 	let buffer: Uint8Array;
-	if (typeof input === 'string') {
-		if (typeof Buffer === 'undefined') {
+	if (typeof input === "string") {
+		if (typeof Buffer === "undefined") {
 			textEncoder ??= new TextEncoder();
 			buffer = textEncoder.encode(input);
 		} else {

@@ -1,23 +1,30 @@
-import type MagicString from 'magic-string';
-import type { RenderOptions } from '../../utils/renderHelpers';
+import type MagicString from "magic-string";
+
+import type { RenderOptions } from "../../utils/renderHelpers";
 import {
 	renderSystemExportExpression,
 	renderSystemExportSequenceAfterExpression,
-	renderSystemExportSequenceBeforeExpression
-} from '../../utils/systemJsRendering';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionAssigned } from '../NodeInteractions';
-import { INTERACTION_ACCESSED } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
-import Identifier from './Identifier';
-import * as NodeType from './NodeType';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { NodeBase } from './shared/Node';
-import type { ExpressionNode, IncludeChildren } from './shared/Node';
+	renderSystemExportSequenceBeforeExpression,
+} from "../../utils/systemJsRendering";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import {
+	INTERACTION_ACCESSED,
+	type NodeInteraction,
+	type NodeInteractionAssigned,
+} from "../NodeInteractions";
+import { EMPTY_PATH, type ObjectPath } from "../utils/PathTracker";
+import Identifier from "./Identifier";
+import * as NodeType from "./NodeType";
+import { UNKNOWN_EXPRESSION } from "./shared/Expression";
+import {
+	NodeBase,
+	type ExpressionNode,
+	type IncludeChildren,
+} from "./shared/Node";
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;
-	declare operator: '++' | '--';
+	declare operator: "++" | "--";
 	declare prefix: boolean;
 	declare type: NodeType.tUpdateExpression;
 	private declare interaction: NodeInteractionAssigned;
@@ -27,14 +34,24 @@ export default class UpdateExpression extends NodeBase {
 		return this.argument.hasEffectsAsAssignmentTarget(context, true);
 	}
 
-	hasEffectsOnInteractionAtPath(path: ObjectPath, { type }: NodeInteraction): boolean {
+	hasEffectsOnInteractionAtPath(
+		path: ObjectPath,
+		{ type }: NodeInteraction,
+	): boolean {
 		return path.length > 1 || type !== INTERACTION_ACCESSED;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	) {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.argument.includeAsAssignmentTarget(context, includeChildrenRecursively, true);
+		this.argument.includeAsAssignmentTarget(
+			context,
+			includeChildrenRecursively,
+			true,
+		);
 	}
 
 	initialise() {
@@ -45,16 +62,22 @@ export default class UpdateExpression extends NodeBase {
 		const {
 			exportNamesByVariable,
 			format,
-			snippets: { _ }
+			snippets: { _ },
 		} = options;
 		this.argument.render(code, options);
-		if (format === 'system') {
+		if (format === "system") {
 			const variable = this.argument.variable!;
 			const exportNames = exportNamesByVariable.get(variable);
 			if (exportNames) {
 				if (this.prefix) {
 					if (exportNames.length === 1) {
-						renderSystemExportExpression(variable, this.start, this.end, code, options);
+						renderSystemExportExpression(
+							variable,
+							this.start,
+							this.end,
+							code,
+							options,
+						);
 					} else {
 						renderSystemExportSequenceAfterExpression(
 							variable,
@@ -62,7 +85,7 @@ export default class UpdateExpression extends NodeBase {
 							this.end,
 							this.parent.type !== NodeType.ExpressionStatement,
 							code,
-							options
+							options,
 						);
 					}
 				} else {
@@ -74,7 +97,7 @@ export default class UpdateExpression extends NodeBase {
 						this.parent.type !== NodeType.ExpressionStatement,
 						code,
 						options,
-						`${_}${operator}${_}1`
+						`${_}${operator}${_}1`,
 					);
 				}
 			}

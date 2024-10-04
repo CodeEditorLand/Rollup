@@ -1,18 +1,26 @@
-import type MagicString from 'magic-string';
-import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type ClassDeclaration from './ClassDeclaration';
-import type ExportSpecifier from './ExportSpecifier';
-import type FunctionDeclaration from './FunctionDeclaration';
-import type ImportAttribute from './ImportAttribute';
-import type Literal from './Literal';
-import type * as NodeType from './NodeType';
-import type VariableDeclaration from './VariableDeclaration';
-import { type Node, NodeBase } from './shared/Node';
+import type MagicString from "magic-string";
+
+import type {
+	NodeRenderOptions,
+	RenderOptions,
+} from "../../utils/renderHelpers";
+import type { HasEffectsContext } from "../ExecutionContext";
+import type ClassDeclaration from "./ClassDeclaration";
+import type ExportSpecifier from "./ExportSpecifier";
+import type FunctionDeclaration from "./FunctionDeclaration";
+import type ImportAttribute from "./ImportAttribute";
+import type Literal from "./Literal";
+import type * as NodeType from "./NodeType";
+import { NodeBase, type Node } from "./shared/Node";
+import type VariableDeclaration from "./VariableDeclaration";
 
 export default class ExportNamedDeclaration extends NodeBase {
 	declare attributes: ImportAttribute[];
-	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
+	declare declaration:
+		| FunctionDeclaration
+		| ClassDeclaration
+		| VariableDeclaration
+		| null;
 	declare needsBoundaries: true;
 	declare source: Literal<string> | null;
 	declare specifiers: readonly ExportSpecifier[];
@@ -35,8 +43,15 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.declaration?.removeAnnotations(code);
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
-		const { start, end } = nodeRenderOptions as { end: number; start: number };
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		nodeRenderOptions?: NodeRenderOptions,
+	): void {
+		const { start, end } = nodeRenderOptions as {
+			end: number;
+			start: number;
+		};
 		if (this.declaration === null) {
 			code.remove(start, end);
 		} else {

@@ -1,9 +1,9 @@
-import type { OutputAsset, OutputBundle, OutputChunk } from '../rollup/types';
+import type { OutputAsset, OutputBundle, OutputChunk } from "../rollup/types";
 
-export const lowercaseBundleKeys = Symbol('bundleKeys');
+export const lowercaseBundleKeys = Symbol("bundleKeys");
 
 export const FILE_PLACEHOLDER = {
-	type: 'placeholder' as const
+	type: "placeholder" as const,
 };
 
 export interface OutputBundleWithPlaceholders {
@@ -11,11 +11,13 @@ export interface OutputBundleWithPlaceholders {
 	[lowercaseBundleKeys]: Set<string>;
 }
 
-export const getOutputBundle = (outputBundleBase: OutputBundle): OutputBundleWithPlaceholders => {
+export const getOutputBundle = (
+	outputBundleBase: OutputBundle,
+): OutputBundleWithPlaceholders => {
 	const reservedLowercaseBundleKeys = new Set<string>();
 	return new Proxy(outputBundleBase, {
 		deleteProperty(target, key) {
-			if (typeof key === 'string') {
+			if (typeof key === "string") {
 				reservedLowercaseBundleKeys.delete(key.toLowerCase());
 			}
 			return Reflect.deleteProperty(target, key);
@@ -27,26 +29,31 @@ export const getOutputBundle = (outputBundleBase: OutputBundle): OutputBundleWit
 			return Reflect.get(target, key);
 		},
 		set(target, key, value) {
-			if (typeof key === 'string') {
+			if (typeof key === "string") {
 				reservedLowercaseBundleKeys.add(key.toLowerCase());
 			}
 			return Reflect.set(target, key, value);
-		}
+		},
 	}) as OutputBundleWithPlaceholders;
 };
 
-export const removeUnreferencedAssets = (outputBundle: OutputBundleWithPlaceholders) => {
+export const removeUnreferencedAssets = (
+	outputBundle: OutputBundleWithPlaceholders,
+) => {
 	const unreferencedAssets = new Set<string>();
 	const bundleEntries = Object.values(outputBundle);
 
 	for (const asset of bundleEntries) {
-		asset.type === 'asset' && asset.needsCodeReference && unreferencedAssets.add(asset.fileName);
+		asset.type === "asset" &&
+			asset.needsCodeReference &&
+			unreferencedAssets.add(asset.fileName);
 	}
 
 	for (const chunk of bundleEntries) {
-		if (chunk.type === 'chunk') {
+		if (chunk.type === "chunk") {
 			for (const referencedFile of chunk.referencedFiles) {
-				unreferencedAssets.has(referencedFile) && unreferencedAssets.delete(referencedFile);
+				unreferencedAssets.has(referencedFile) &&
+					unreferencedAssets.delete(referencedFile);
 			}
 		}
 	}

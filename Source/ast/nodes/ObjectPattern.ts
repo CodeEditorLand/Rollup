@@ -1,14 +1,14 @@
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteractionAssigned } from '../NodeInteractions';
-import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
-import type LocalVariable from '../variables/LocalVariable';
-import type Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
-import type Property from './Property';
-import type RestElement from './RestElement';
-import type { ExpressionEntity } from './shared/Expression';
-import { NodeBase } from './shared/Node';
-import type { PatternNode } from './shared/Pattern';
+import type { HasEffectsContext } from "../ExecutionContext";
+import type { NodeInteractionAssigned } from "../NodeInteractions";
+import { EMPTY_PATH, type ObjectPath } from "../utils/PathTracker";
+import type LocalVariable from "../variables/LocalVariable";
+import type Variable from "../variables/Variable";
+import * as NodeType from "./NodeType";
+import type Property from "./Property";
+import type RestElement from "./RestElement";
+import type { ExpressionEntity } from "./shared/Expression";
+import { NodeBase } from "./shared/Node";
+import type { PatternNode } from "./shared/Pattern";
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
 	declare properties: readonly (Property | RestElement)[];
@@ -16,16 +16,19 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 
 	addExportedVariables(
 		variables: readonly Variable[],
-		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 	): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {
 				(property.value as unknown as PatternNode).addExportedVariables(
 					variables,
-					exportNamesByVariable
+					exportNamesByVariable,
 				);
 			} else {
-				property.argument.addExportedVariables(variables, exportNamesByVariable);
+				property.argument.addExportedVariables(
+					variables,
+					exportNamesByVariable,
+				);
 			}
 		}
 	}
@@ -51,10 +54,17 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		// where the path is empty
 		_path: ObjectPath,
 		interaction: NodeInteractionAssigned,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		for (const property of this.properties) {
-			if (property.hasEffectsOnInteractionAtPath(EMPTY_PATH, interaction, context)) return true;
+			if (
+				property.hasEffectsOnInteractionAtPath(
+					EMPTY_PATH,
+					interaction,
+					context,
+				)
+			)
+				return true;
 		}
 		return false;
 	}

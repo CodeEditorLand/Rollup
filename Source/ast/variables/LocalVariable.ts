@@ -1,29 +1,37 @@
-import type { AstContext, default as Module } from '../../Module';
-import { EMPTY_ARRAY } from '../../utils/blank';
-import type { DeoptimizableEntity } from '../DeoptimizableEntity';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { createInclusionContext } from '../ExecutionContext';
-import type { NodeInteraction, NodeInteractionCalled } from '../NodeInteractions';
+import type { AstContext, default as Module } from "../../Module";
+import { EMPTY_ARRAY } from "../../utils/blank";
+import type { DeoptimizableEntity } from "../DeoptimizableEntity";
+import {
+	createInclusionContext,
+	type HasEffectsContext,
+	type InclusionContext,
+} from "../ExecutionContext";
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED
-} from '../NodeInteractions';
-import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import type Identifier from '../nodes/Identifier';
-import * as NodeType from '../nodes/NodeType';
-import type SpreadElement from '../nodes/SpreadElement';
+	INTERACTION_CALLED,
+	type NodeInteraction,
+	type NodeInteractionCalled,
+} from "../NodeInteractions";
+import type ExportDefaultDeclaration from "../nodes/ExportDefaultDeclaration";
+import type Identifier from "../nodes/Identifier";
+import * as NodeType from "../nodes/NodeType";
 import {
 	deoptimizeInteraction,
-	type ExpressionEntity,
-	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_RETURN_EXPRESSION,
-	UnknownValue
-} from '../nodes/shared/Expression';
-import type { Node } from '../nodes/shared/Node';
-import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
-import Variable from './Variable';
+	UnknownValue,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+} from "../nodes/shared/Expression";
+import type { Node } from "../nodes/shared/Node";
+import type SpreadElement from "../nodes/SpreadElement";
+import {
+	UNKNOWN_PATH,
+	type ObjectPath,
+	type PathTracker,
+} from "../utils/PathTracker";
+import Variable from "./Variable";
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
@@ -40,7 +48,7 @@ export default class LocalVariable extends Variable {
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
 		private init: ExpressionEntity,
-		context: AstContext
+		context: AstContext,
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
@@ -65,7 +73,7 @@ export default class LocalVariable extends Variable {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	): void {
 		if (this.isReassigned) {
 			deoptimizeInteraction(interaction);
@@ -74,23 +82,33 @@ export default class LocalVariable extends Variable {
 		recursionTracker.withTrackedEntityAtPath(
 			path,
 			this.init,
-			() => this.init.deoptimizeArgumentsOnInteractionAtPath(interaction, path, recursionTracker),
-			undefined
+			() =>
+				this.init.deoptimizeArgumentsOnInteractionAtPath(
+					interaction,
+					path,
+					recursionTracker,
+				),
+			undefined,
 		);
 	}
 
 	deoptimizePath(path: ObjectPath): void {
 		if (
 			this.isReassigned ||
-			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
+			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(
+				path,
+				this,
+			)
 		) {
 			return;
 		}
 		if (path.length === 0) {
 			if (!this.isReassigned) {
 				this.isReassigned = true;
-				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-				this.expressionsToBeDeoptimized = EMPTY_ARRAY as unknown as DeoptimizableEntity[];
+				const expressionsToBeDeoptimized =
+					this.expressionsToBeDeoptimized;
+				this.expressionsToBeDeoptimized =
+					EMPTY_ARRAY as unknown as DeoptimizableEntity[];
 				for (const expression of expressionsToBeDeoptimized) {
 					expression.deoptimizeCache();
 				}
@@ -104,7 +122,7 @@ export default class LocalVariable extends Variable {
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): LiteralValueOrUnknown {
 		if (this.isReassigned) {
 			return UnknownValue;
@@ -114,9 +132,13 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
-				return this.init.getLiteralValueAtPath(path, recursionTracker, origin);
+				return this.init.getLiteralValueAtPath(
+					path,
+					recursionTracker,
+					origin,
+				);
 			},
-			UnknownValue
+			UnknownValue,
 		);
 	}
 
@@ -124,7 +146,7 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (this.isReassigned) {
 			return UNKNOWN_RETURN_EXPRESSION;
@@ -138,24 +160,31 @@ export default class LocalVariable extends Variable {
 					path,
 					interaction,
 					recursionTracker,
-					origin
+					origin,
 				);
 			},
-			UNKNOWN_RETURN_EXPRESSION
+			UNKNOWN_RETURN_EXPRESSION,
 		);
 	}
 
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
 				if (this.isReassigned) return true;
 				return (
-					!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					!context.accessed.trackEntityAtPathAndGetIfTracked(
+						path,
+						this,
+					) &&
+					this.init.hasEffectsOnInteractionAtPath(
+						path,
+						interaction,
+						context,
+					)
 				);
 			}
 			case INTERACTION_ASSIGNED: {
@@ -163,17 +192,34 @@ export default class LocalVariable extends Variable {
 				if (path.length === 0) return false;
 				if (this.isReassigned) return true;
 				return (
-					!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+					!context.assigned.trackEntityAtPathAndGetIfTracked(
+						path,
+						this,
+					) &&
+					this.init.hasEffectsOnInteractionAtPath(
+						path,
+						interaction,
+						context,
+					)
 				);
 			}
 			case INTERACTION_CALLED: {
 				if (this.isReassigned) return true;
 				return (
 					!(
-						interaction.withNew ? context.instantiated : context.called
-					).trackEntityAtPathAndGetIfTracked(path, interaction.args, this) &&
-					this.init.hasEffectsOnInteractionAtPath(path, interaction, context)
+						interaction.withNew
+							? context.instantiated
+							: context.called
+					).trackEntityAtPathAndGetIfTracked(
+						path,
+						interaction.args,
+						this,
+					) &&
+					this.init.hasEffectsOnInteractionAtPath(
+						path,
+						interaction,
+						context,
+					)
 				);
 			}
 		}
@@ -184,7 +230,8 @@ export default class LocalVariable extends Variable {
 			this.included = true;
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(createInclusionContext(), false);
+				if (!declaration.included)
+					declaration.include(createInclusionContext(), false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
@@ -199,7 +246,7 @@ export default class LocalVariable extends Variable {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[],
 	): void {
 		if (this.isReassigned || context.includedCallArguments.has(this.init)) {
 			for (const argument of parameters) {

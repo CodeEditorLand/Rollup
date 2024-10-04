@@ -1,7 +1,7 @@
-import type Module from '../../Module';
-import type { AstContext } from '../../Module';
-import ExportDefaultVariable from './ExportDefaultVariable';
-import Variable from './Variable';
+import type Module from "../../Module";
+import type { AstContext } from "../../Module";
+import ExportDefaultVariable from "./ExportDefaultVariable";
+import Variable from "./Variable";
 
 export default class SyntheticNamedExportVariable extends Variable {
 	readonly context: AstContext;
@@ -10,7 +10,11 @@ export default class SyntheticNamedExportVariable extends Variable {
 
 	private baseVariable: Variable | null = null;
 
-	constructor(context: AstContext, name: string, syntheticNamespace: Variable) {
+	constructor(
+		context: AstContext,
+		name: string,
+		syntheticNamespace: Variable,
+	) {
 		super(name);
 		this.context = context;
 		this.module = context.module;

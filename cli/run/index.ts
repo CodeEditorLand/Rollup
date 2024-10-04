@@ -1,36 +1,44 @@
-import { env } from 'node:process';
-import type { MergedRollupOptions } from '../../src/rollup/types';
-import { logDuplicateImportOptions, logFailAfterWarnings } from '../../src/utils/logs';
-import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
-import { getAliasName } from '../../src/utils/relativeId';
-import { loadFsEvents } from '../../src/watch/fsevents-importer';
-import { handleError } from '../logging';
-import build from './build';
-import { getConfigPath } from './getConfigPath';
-import { loadConfigFile } from './loadConfigFile';
-import type { BatchWarnings } from './loadConfigFileType';
-import loadConfigFromCommand from './loadConfigFromCommand';
+import { env } from "node:process";
 
-export default async function runRollup(command: Record<string, any>): Promise<void> {
+import type { MergedRollupOptions } from "../../src/rollup/types";
+import {
+	logDuplicateImportOptions,
+	logFailAfterWarnings,
+} from "../../src/utils/logs";
+import { isWatchEnabled } from "../../src/utils/options/mergeOptions";
+import { getAliasName } from "../../src/utils/relativeId";
+import { loadFsEvents } from "../../src/watch/fsevents-importer";
+import { handleError } from "../logging";
+import build from "./build";
+import { getConfigPath } from "./getConfigPath";
+import { loadConfigFile } from "./loadConfigFile";
+import type { BatchWarnings } from "./loadConfigFileType";
+import loadConfigFromCommand from "./loadConfigFromCommand";
+
+export default async function runRollup(
+	command: Record<string, any>,
+): Promise<void> {
 	let inputSource;
 	if (command._.length > 0) {
 		if (command.input) {
 			handleError(logDuplicateImportOptions());
 		}
 		inputSource = command._;
-	} else if (typeof command.input === 'string') {
+	} else if (typeof command.input === "string") {
 		inputSource = [command.input];
 	} else {
 		inputSource = command.input;
 	}
 
 	if (inputSource && inputSource.length > 0) {
-		if (inputSource.some((input: string) => input.includes('='))) {
+		if (inputSource.some((input: string) => input.includes("="))) {
 			command.input = {};
 			for (const input of inputSource) {
-				const equalsIndex = input.indexOf('=');
+				const equalsIndex = input.indexOf("=");
 				const value = input.slice(Math.max(0, equalsIndex + 1));
-				const key = input.slice(0, Math.max(0, equalsIndex)) || getAliasName(input);
+				const key =
+					input.slice(0, Math.max(0, equalsIndex)) ||
+					getAliasName(input);
 
 				command.input[key] = value;
 			}
@@ -45,16 +53,16 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 			: [command.environment];
 
 		for (const argument of environment) {
-			for (const pair of argument.split(',')) {
-				const [key, ...value] = pair.split(':');
-				env[key] = value.length === 0 ? String(true) : value.join(':');
+			for (const pair of argument.split(",")) {
+				const [key, ...value] = pair.split(":");
+				env[key] = value.length === 0 ? String(true) : value.join(":");
 			}
 		}
 	}
 
 	if (isWatchEnabled(command.watch)) {
 		await loadFsEvents();
-		const { watch } = await import('./watch-cli');
+		const { watch } = await import("./watch-cli");
 		await watch(command);
 	} else {
 		try {
@@ -78,11 +86,15 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 }
 
 async function getConfigs(
-	command: any
+	command: any,
 ): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	if (command.config) {
 		const configFile = await getConfigPath(command.config);
-		const { options, warnings } = await loadConfigFile(configFile, command, false);
+		const { options, warnings } = await loadConfigFile(
+			configFile,
+			command,
+			false,
+		);
 		return { options, warnings };
 	}
 	return await loadConfigFromCommand(command, false);

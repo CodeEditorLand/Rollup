@@ -1,32 +1,44 @@
-import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { type HasEffectsContext, type InclusionContext } from '../../ExecutionContext';
-import type { NodeInteraction, NodeInteractionCalled } from '../../NodeInteractions';
+import type { NormalizedTreeshakingOptions } from "../../../rollup/types";
+import type { DeoptimizableEntity } from "../../DeoptimizableEntity";
+import {
+	type HasEffectsContext,
+	type InclusionContext,
+} from "../../ExecutionContext";
 import {
 	INTERACTION_CALLED,
 	NODE_INTERACTION_UNKNOWN_ACCESS,
-	NODE_INTERACTION_UNKNOWN_CALL
-} from '../../NodeInteractions';
-import type ReturnValueScope from '../../scopes/ReturnValueScope';
-import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
-import type ParameterVariable from '../../variables/ParameterVariable';
-import BlockStatement from '../BlockStatement';
-import Identifier from '../Identifier';
-import * as NodeType from '../NodeType';
-import RestElement from '../RestElement';
-import type SpreadElement from '../SpreadElement';
-import { Flag, isFlagSet, setFlag } from './BitFlags';
-import type { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
-import { UNKNOWN_EXPRESSION, UNKNOWN_RETURN_EXPRESSION } from './Expression';
+	NODE_INTERACTION_UNKNOWN_CALL,
+	type NodeInteraction,
+	type NodeInteractionCalled,
+} from "../../NodeInteractions";
+import type ReturnValueScope from "../../scopes/ReturnValueScope";
 import {
+	UNKNOWN_PATH,
+	UnknownKey,
+	type ObjectPath,
+	type PathTracker,
+} from "../../utils/PathTracker";
+import type ParameterVariable from "../../variables/ParameterVariable";
+import BlockStatement from "../BlockStatement";
+import Identifier from "../Identifier";
+import * as NodeType from "../NodeType";
+import RestElement from "../RestElement";
+import type SpreadElement from "../SpreadElement";
+import { Flag, isFlagSet, setFlag } from "./BitFlags";
+import {
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_RETURN_EXPRESSION,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+} from "./Expression";
+import {
+	NodeBase,
 	type ExpressionNode,
 	type GenericEsTreeNode,
 	type IncludeChildren,
-	NodeBase
-} from './Node';
-import type { ObjectEntity } from './ObjectEntity';
-import type { PatternNode } from './Pattern';
+} from "./Node";
+import type { ObjectEntity } from "./ObjectEntity";
+import type { PatternNode } from "./Pattern";
 
 export default abstract class FunctionBase extends NodeBase {
 	declare body: BlockStatement | ExpressionNode;
@@ -53,7 +65,7 @@ export default abstract class FunctionBase extends NodeBase {
 	deoptimizeArgumentsOnInteractionAtPath(
 		interaction: NodeInteraction,
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
 	): void {
 		if (interaction.type === INTERACTION_CALLED) {
 			const { parameters } = this.scope;
@@ -79,7 +91,7 @@ export default abstract class FunctionBase extends NodeBase {
 			this.getObjectEntity().deoptimizeArgumentsOnInteractionAtPath(
 				interaction,
 				path,
-				recursionTracker
+				recursionTracker,
 			);
 		}
 	}
@@ -101,23 +113,27 @@ export default abstract class FunctionBase extends NodeBase {
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): LiteralValueOrUnknown {
-		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.getObjectEntity().getLiteralValueAtPath(
+			path,
+			recursionTracker,
+			origin,
+		);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		interaction: NodeInteractionCalled,
 		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
+		origin: DeoptimizableEntity,
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length > 0) {
 			return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 				path,
 				interaction,
 				recursionTracker,
-				origin
+				origin,
 			);
 		}
 		if (this.async) {
@@ -134,10 +150,14 @@ export default abstract class FunctionBase extends NodeBase {
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		if (path.length > 0 || interaction.type !== INTERACTION_CALLED) {
-			return this.getObjectEntity().hasEffectsOnInteractionAtPath(path, interaction, context);
+			return this.getObjectEntity().hasEffectsOnInteractionAtPath(
+				path,
+				interaction,
+				context,
+			);
 		}
 
 		if (this.annotationNoSideEffects) {
@@ -150,16 +170,16 @@ export default abstract class FunctionBase extends NodeBase {
 			const returnExpression = this.scope.getReturnExpression();
 			if (
 				returnExpression.hasEffectsOnInteractionAtPath(
-					['then'],
+					["then"],
 					NODE_INTERACTION_UNKNOWN_CALL,
-					context
+					context,
 				) ||
 				(propertyReadSideEffects &&
-					(propertyReadSideEffects === 'always' ||
+					(propertyReadSideEffects === "always" ||
 						returnExpression.hasEffectsOnInteractionAtPath(
-							['then'],
+							["then"],
 							NODE_INTERACTION_UNKNOWN_ACCESS,
-							context
+							context,
 						)))
 			) {
 				return true;
@@ -171,7 +191,10 @@ export default abstract class FunctionBase extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		const { brokenFlow } = context;
@@ -182,7 +205,7 @@ export default abstract class FunctionBase extends NodeBase {
 
 	includeCallArguments(
 		context: InclusionContext,
-		parameters: readonly (ExpressionEntity | SpreadElement)[]
+		parameters: readonly (ExpressionEntity | SpreadElement)[],
 	): void {
 		this.scope.includeCallArguments(context, parameters);
 	}
@@ -190,9 +213,13 @@ export default abstract class FunctionBase extends NodeBase {
 	initialise(): void {
 		this.scope.addParameterVariables(
 			this.params.map(
-				parameter => parameter.declare('parameter', UNKNOWN_EXPRESSION) as ParameterVariable[]
+				(parameter) =>
+					parameter.declare(
+						"parameter",
+						UNKNOWN_EXPRESSION,
+					) as ParameterVariable[],
 			),
-			this.params[this.params.length - 1] instanceof RestElement
+			this.params[this.params.length - 1] instanceof RestElement,
 		);
 		if (this.body instanceof BlockStatement) {
 			this.body.addImplicitReturnExpressionToScope();
@@ -203,7 +230,11 @@ export default abstract class FunctionBase extends NodeBase {
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
 		if (esTreeNode.body.type === NodeType.BlockStatement) {
-			this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
+			this.body = new BlockStatement(
+				esTreeNode.body,
+				this,
+				this.scope.hoistedBodyVarScope,
+			);
 		}
 		super.parseNode(esTreeNode);
 	}

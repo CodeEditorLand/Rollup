@@ -1,11 +1,15 @@
-import type MagicString from 'magic-string';
-import type Variable from '../ast/variables/Variable';
-import type { RenderOptions } from './renderHelpers';
+import type MagicString from "magic-string";
+
+import type Variable from "../ast/variables/Variable";
+import type { RenderOptions } from "./renderHelpers";
 
 export function getSystemExportStatement(
 	exportedVariables: readonly Variable[],
-	{ exportNamesByVariable, snippets: { _, getObject, getPropertyAccess } }: RenderOptions,
-	modifier = ''
+	{
+		exportNamesByVariable,
+		snippets: { _, getObject, getPropertyAccess },
+	}: RenderOptions,
+	modifier = "",
 ): string {
 	if (
 		exportedVariables.length === 1 &&
@@ -13,13 +17,16 @@ export function getSystemExportStatement(
 	) {
 		const variable = exportedVariables[0];
 		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName(
-			getPropertyAccess
+			getPropertyAccess,
 		)}${modifier})`;
 	} else {
 		const fields: [key: string, value: string][] = [];
 		for (const variable of exportedVariables) {
 			for (const exportName of exportNamesByVariable.get(variable)!) {
-				fields.push([exportName, variable.getName(getPropertyAccess) + modifier]);
+				fields.push([
+					exportName,
+					variable.getName(getPropertyAccess) + modifier,
+				]);
 			}
 		}
 		return `exports(${getObject(fields, { lineBreakIndent: null })})`;
@@ -31,13 +38,13 @@ export function renderSystemExportExpression(
 	expressionStart: number,
 	expressionEnd: number,
 	code: MagicString,
-	{ exportNamesByVariable, snippets: { _ } }: RenderOptions
+	{ exportNamesByVariable, snippets: { _ } }: RenderOptions,
 ): void {
 	code.prependRight(
 		expressionStart,
-		`exports('${exportNamesByVariable.get(exportedVariable)}',${_}`
+		`exports('${exportNamesByVariable.get(exportedVariable)}',${_}`,
 	);
-	code.appendLeft(expressionEnd, ')');
+	code.appendLeft(expressionEnd, ")");
 }
 
 export function renderSystemExportFunction(
@@ -46,18 +53,18 @@ export function renderSystemExportFunction(
 	expressionEnd: number,
 	needsParens: boolean | undefined,
 	code: MagicString,
-	options: RenderOptions
+	options: RenderOptions,
 ): void {
 	const { _, getDirectReturnIifeLeft } = options.snippets;
 	code.prependRight(
 		expressionStart,
 		getDirectReturnIifeLeft(
-			['v'],
+			["v"],
 			`${getSystemExportStatement(exportedVariables, options)},${_}v`,
-			{ needsArrowReturnParens: true, needsWrappedFunction: needsParens }
-		)
+			{ needsArrowReturnParens: true, needsWrappedFunction: needsParens },
+		),
 	);
-	code.appendLeft(expressionEnd, ')');
+	code.appendLeft(expressionEnd, ")");
 }
 
 export function renderSystemExportSequenceAfterExpression(
@@ -66,18 +73,18 @@ export function renderSystemExportSequenceAfterExpression(
 	expressionEnd: number,
 	needsParens: boolean | undefined,
 	code: MagicString,
-	options: RenderOptions
+	options: RenderOptions,
 ): void {
 	const { _, getPropertyAccess } = options.snippets;
 	code.appendLeft(
 		expressionEnd,
 		`,${_}${getSystemExportStatement([exportedVariable], options)},${_}${exportedVariable.getName(
-			getPropertyAccess
-		)}`
+			getPropertyAccess,
+		)}`,
 	);
 	if (needsParens) {
-		code.prependRight(expressionStart, '(');
-		code.appendLeft(expressionEnd, ')');
+		code.prependRight(expressionStart, "(");
+		code.appendLeft(expressionEnd, ")");
 	}
 }
 
@@ -88,15 +95,15 @@ export function renderSystemExportSequenceBeforeExpression(
 	needsParens: boolean | undefined,
 	code: MagicString,
 	options: RenderOptions,
-	modifier: string
+	modifier: string,
 ): void {
 	const { _ } = options.snippets;
 	code.prependRight(
 		expressionStart,
-		`${getSystemExportStatement([exportedVariable], options, modifier)},${_}`
+		`${getSystemExportStatement([exportedVariable], options, modifier)},${_}`,
 	);
 	if (needsParens) {
-		code.prependRight(expressionStart, '(');
-		code.appendLeft(expressionEnd, ')');
+		code.prependRight(expressionStart, "(");
+		code.appendLeft(expressionEnd, ")");
 	}
 }

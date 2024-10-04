@@ -1,12 +1,15 @@
-import type { InclusionContext } from '../ExecutionContext';
-import type ChildScope from '../scopes/ChildScope';
-import ClassBodyScope from '../scopes/ClassBodyScope';
-
-import type MethodDefinition from './MethodDefinition';
-import type * as NodeType from './NodeType';
-import type PropertyDefinition from './PropertyDefinition';
-import type ClassNode from './shared/ClassNode';
-import { type GenericEsTreeNode, type IncludeChildren, NodeBase } from './shared/Node';
+import type { InclusionContext } from "../ExecutionContext";
+import type ChildScope from "../scopes/ChildScope";
+import ClassBodyScope from "../scopes/ClassBodyScope";
+import type MethodDefinition from "./MethodDefinition";
+import type * as NodeType from "./NodeType";
+import type PropertyDefinition from "./PropertyDefinition";
+import type ClassNode from "./shared/ClassNode";
+import {
+	NodeBase,
+	type GenericEsTreeNode,
+	type IncludeChildren,
+} from "./shared/Node";
 
 export default class ClassBody extends NodeBase {
 	declare body: (MethodDefinition | PropertyDefinition)[];
@@ -14,10 +17,17 @@ export default class ClassBody extends NodeBase {
 	declare type: NodeType.tClassBody;
 
 	createScope(parentScope: ChildScope): void {
-		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode, this.scope.context);
+		this.scope = new ClassBodyScope(
+			parentScope,
+			this.parent as ClassNode,
+			this.scope.context,
+		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		this.scope.context.includeVariableInModule(this.scope.thisVariable);
 		for (const definition of this.body) {
@@ -32,8 +42,8 @@ export default class ClassBody extends NodeBase {
 				new (this.scope.context.getNodeConstructor(definition.type))(
 					definition,
 					this,
-					definition.static ? this.scope : this.scope.instanceScope
-				)
+					definition.static ? this.scope : this.scope.instanceScope,
+				),
 			);
 		}
 		super.parseNode(esTreeNode);

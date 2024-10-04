@@ -1,7 +1,7 @@
-import type { Entity } from './Entity';
-import type { ExpressionEntity } from './nodes/shared/Expression';
-import { DiscriminatedPathTracker, PathTracker } from './utils/PathTracker';
-import type ThisVariable from './variables/ThisVariable';
+import type { Entity } from "./Entity";
+import type { ExpressionEntity } from "./nodes/shared/Expression";
+import { DiscriminatedPathTracker, PathTracker } from "./utils/PathTracker";
+import type ThisVariable from "./variables/ThisVariable";
 
 interface ExecutionContextIgnore {
 	breaks: boolean;
@@ -38,7 +38,7 @@ export function createInclusionContext(): InclusionContext {
 		hasBreak: false,
 		hasContinue: false,
 		includedCallArguments: new Set(),
-		includedLabels: new Set()
+		includedLabels: new Set(),
 	};
 }
 
@@ -55,10 +55,10 @@ export function createHasEffectsContext(): HasEffectsContext {
 			continues: false,
 			labels: new Set(),
 			returnYield: false,
-			this: false
+			this: false,
 		},
 		includedLabels: new Set(),
 		instantiated: new DiscriminatedPathTracker(),
-		replacedVariableInits: new Map()
+		replacedVariableInits: new Map(),
 	};
 }

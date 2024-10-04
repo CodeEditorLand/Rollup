@@ -1,11 +1,11 @@
-import type Variable from '../ast/variables/Variable';
-import RESERVED_NAMES from './RESERVED_NAMES';
-import { toBase64 } from './base64';
+import type Variable from "../ast/variables/Variable";
+import { toBase64 } from "./base64";
+import RESERVED_NAMES from "./RESERVED_NAMES";
 
 export function assignExportsToMangledNames(
 	exports: ReadonlySet<Variable>,
 	exportsByName: Map<string, Variable>,
-	exportNamesByVariable: Map<Variable, string[]>
+	exportNamesByVariable: Map<Variable, string[]>,
 ): void {
 	let nameIndex = 0;
 	for (const variable of exports) {
@@ -18,7 +18,10 @@ export function assignExportsToMangledNames(
 					nameIndex += 9 * 64 ** (exportName.length - 1);
 					exportName = toBase64(nameIndex);
 				}
-			} while (RESERVED_NAMES.has(exportName) || exportsByName.has(exportName));
+			} while (
+				RESERVED_NAMES.has(exportName) ||
+				exportsByName.has(exportName)
+			);
 		}
 		exportsByName.set(exportName, variable);
 		exportNamesByVariable.set(variable, [exportName]);
@@ -28,13 +31,13 @@ export function assignExportsToMangledNames(
 export function assignExportsToNames(
 	exports: ReadonlySet<Variable>,
 	exportsByName: Map<string, Variable>,
-	exportNamesByVariable: Map<Variable, string[]>
+	exportNamesByVariable: Map<Variable, string[]>,
 ): void {
 	for (const variable of exports) {
 		let nameIndex = 0;
 		let exportName = variable.name;
 		while (exportsByName.has(exportName)) {
-			exportName = variable.name + '$' + ++nameIndex;
+			exportName = variable.name + "$" + ++nameIndex;
 		}
 		exportsByName.set(exportName, variable);
 		exportNamesByVariable.set(variable, [exportName]);

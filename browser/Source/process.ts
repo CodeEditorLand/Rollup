@@ -5,7 +5,7 @@ interface MemoryUsage {
 export default {
 	memoryUsage(): MemoryUsage {
 		return {
-			heapUsed: 0
+			heapUsed: 0,
 		};
-	}
+	},
 };

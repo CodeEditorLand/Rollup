@@ -1,8 +1,9 @@
-const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$';
+const chars =
+	"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$";
 const base = 64;
 
 export function toBase64(value: number): string {
-	let outString = '';
+	let outString = "";
 	do {
 		const currentDigit = value % base;
 		value = (value / base) | 0;

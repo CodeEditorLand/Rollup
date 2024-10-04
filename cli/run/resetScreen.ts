@@ -1,11 +1,11 @@
-import type { MergedRollupOptions } from '../../src/rollup/types';
-import { stderr } from '../logging';
+import type { MergedRollupOptions } from "../../src/rollup/types";
+import { stderr } from "../logging";
 
-const CLEAR_SCREEN = '\u001Bc';
+const CLEAR_SCREEN = "\u001Bc";
 
 export function getResetScreen(
 	configs: readonly MergedRollupOptions[],
-	allowClearScreen: boolean | undefined
+	allowClearScreen: boolean | undefined,
 ): (heading: string) => void {
 	let clearScreen = allowClearScreen;
 	for (const config of configs) {

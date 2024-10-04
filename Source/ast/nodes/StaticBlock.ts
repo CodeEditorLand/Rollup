@@ -1,14 +1,19 @@
-import type MagicString from 'magic-string';
+import type MagicString from "magic-string";
+
 import {
 	findFirstOccurrenceOutsideComment,
+	renderStatementList,
 	type RenderOptions,
-	renderStatementList
-} from '../../utils/renderHelpers';
-import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import BlockScope from '../scopes/BlockScope';
-import type ChildScope from '../scopes/ChildScope';
-import type * as NodeType from './NodeType';
-import { type IncludeChildren, StatementBase, type StatementNode } from './shared/Node';
+} from "../../utils/renderHelpers";
+import type { HasEffectsContext, InclusionContext } from "../ExecutionContext";
+import BlockScope from "../scopes/BlockScope";
+import type ChildScope from "../scopes/ChildScope";
+import type * as NodeType from "./NodeType";
+import {
+	StatementBase,
+	type IncludeChildren,
+	type StatementNode,
+} from "./shared/Node";
 
 export default class StaticBlock extends StatementBase {
 	declare body: readonly StatementNode[];
@@ -25,7 +30,10 @@ export default class StaticBlock extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+	include(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren,
+	): void {
 		this.included = true;
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
@@ -36,8 +44,17 @@ export default class StaticBlock extends StatementBase {
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.body.length > 0) {
 			const bodyStartPos =
-				findFirstOccurrenceOutsideComment(code.original.slice(this.start, this.end), '{') + 1;
-			renderStatementList(this.body, code, this.start + bodyStartPos, this.end - 1, options);
+				findFirstOccurrenceOutsideComment(
+					code.original.slice(this.start, this.end),
+					"{",
+				) + 1;
+			renderStatementList(
+				this.body,
+				code,
+				this.start + bodyStartPos,
+				this.end - 1,
+				options,
+			);
 		} else {
 			super.render(code, options);
 		}

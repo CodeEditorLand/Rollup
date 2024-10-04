@@ -1,19 +1,19 @@
-import type Chunk from '../Chunk';
-import ExternalChunk from '../ExternalChunk';
-import ExternalModule from '../ExternalModule';
-import type Module from '../Module';
-import type ChildScope from '../ast/scopes/ChildScope';
-import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
-import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
-import type Variable from '../ast/variables/Variable';
-import type { GetInterop, InternalModuleFormat } from '../rollup/types';
+import type ChildScope from "../ast/scopes/ChildScope";
+import ExportDefaultVariable from "../ast/variables/ExportDefaultVariable";
+import type SyntheticNamedExportVariable from "../ast/variables/SyntheticNamedExportVariable";
+import type Variable from "../ast/variables/Variable";
+import type Chunk from "../Chunk";
+import ExternalChunk from "../ExternalChunk";
+import ExternalModule from "../ExternalModule";
+import type Module from "../Module";
+import type { GetInterop, InternalModuleFormat } from "../rollup/types";
 import {
 	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,
 	isDefaultAProperty,
-	namespaceInteropHelpersByInteropType
-} from './interopHelpers';
-import { getSafeName } from './safeName';
+	namespaceInteropHelpersByInteropType,
+} from "./interopHelpers";
+import { getSafeName } from "./safeName";
 
 export interface DependenciesToBeDeconflicted {
 	deconflictedDefault: ReadonlySet<ExternalChunk>;
@@ -31,7 +31,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		externalLiveBindings: boolean,
 		chunkByModule: ReadonlyMap<Module, Chunk>,
 		externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>,
-		syntheticExports: ReadonlySet<SyntheticNamedExportVariable>
+		syntheticExports: ReadonlySet<SyntheticNamedExportVariable>,
 	) => void;
 } = {
 	amd: deconflictImportsOther,
@@ -39,7 +39,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	es: deconflictImportsEsmOrSystem,
 	iife: deconflictImportsOther,
 	system: deconflictImportsEsmOrSystem,
-	umd: deconflictImportsOther
+	umd: deconflictImportsOther,
 };
 
 export function deconflictChunk(
@@ -56,7 +56,7 @@ export function deconflictChunk(
 	syntheticExports: ReadonlySet<SyntheticNamedExportVariable>,
 	exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
 	accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>,
-	includedNamespaces: ReadonlySet<Module>
+	includedNamespaces: ReadonlySet<Module>,
 ): void {
 	const reversedModules = [...modules].reverse();
 	for (const module of reversedModules) {
@@ -64,7 +64,7 @@ export function deconflictChunk(
 			usedNames,
 			format,
 			exportNamesByVariable,
-			accessedGlobalsByScope
+			accessedGlobalsByScope,
 		);
 	}
 	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
@@ -77,11 +77,15 @@ export function deconflictChunk(
 		externalLiveBindings,
 		chunkByModule,
 		externalChunkByModule,
-		syntheticExports
+		syntheticExports,
 	);
 
 	for (const module of reversedModules) {
-		module.scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
+		module.scope.deconflict(
+			format,
+			exportNamesByVariable,
+			accessedGlobalsByScope,
+		);
 	}
 }
 
@@ -94,95 +98,126 @@ function deconflictImportsEsmOrSystem(
 	_externalLiveBindings: boolean,
 	chunkByModule: ReadonlyMap<Module, Chunk>,
 	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>,
-	syntheticExports: ReadonlySet<SyntheticNamedExportVariable>
+	syntheticExports: ReadonlySet<SyntheticNamedExportVariable>,
 ) {
 	// This is needed for namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
 		if (preserveModules || dependency instanceof ExternalChunk) {
-			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames, null);
+			dependency.variableName = getSafeName(
+				dependency.suggestedVariableName,
+				usedNames,
+				null,
+			);
 		}
 	}
 	for (const variable of imports) {
 		const module = variable.module!;
 		const name = variable.name;
-		if (variable.isNamespace && (preserveModules || module instanceof ExternalModule)) {
+		if (
+			variable.isNamespace &&
+			(preserveModules || module instanceof ExternalModule)
+		) {
 			variable.setRenderNames(
 				null,
 				(module instanceof ExternalModule
 					? externalChunkByModule.get(module)!
 					: chunkByModule.get(module)!
-				).variableName
+				).variableName,
 			);
-		} else if (module instanceof ExternalModule && name === 'default') {
+		} else if (module instanceof ExternalModule && name === "default") {
 			variable.setRenderNames(
 				null,
 				getSafeName(
 					[...module.exportedVariables].some(
-						([exportedVariable, exportedName]) => exportedName === '*' && exportedVariable.included
+						([exportedVariable, exportedName]) =>
+							exportedName === "*" && exportedVariable.included,
 					)
-						? module.suggestedVariableName + '__default'
+						? module.suggestedVariableName + "__default"
 						: module.suggestedVariableName,
 					usedNames,
-					variable.forbiddenNames
-				)
+					variable.forbiddenNames,
+				),
 			);
 		} else {
-			variable.setRenderNames(null, getSafeName(name, usedNames, variable.forbiddenNames));
+			variable.setRenderNames(
+				null,
+				getSafeName(name, usedNames, variable.forbiddenNames),
+			);
 		}
 	}
 	for (const variable of syntheticExports) {
-		variable.setRenderNames(null, getSafeName(variable.name, usedNames, variable.forbiddenNames));
+		variable.setRenderNames(
+			null,
+			getSafeName(variable.name, usedNames, variable.forbiddenNames),
+		);
 	}
 }
 
 function deconflictImportsOther(
 	usedNames: Set<string>,
 	imports: ReadonlySet<Variable>,
-	{ deconflictedDefault, deconflictedNamespace, dependencies }: DependenciesToBeDeconflicted,
+	{
+		deconflictedDefault,
+		deconflictedNamespace,
+		dependencies,
+	}: DependenciesToBeDeconflicted,
 	interop: GetInterop,
 	preserveModules: boolean,
 	externalLiveBindings: boolean,
 	chunkByModule: ReadonlyMap<Module, Chunk>,
-	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>
+	externalChunkByModule: ReadonlyMap<ExternalModule, ExternalChunk>,
 ): void {
 	for (const chunk of dependencies) {
-		chunk.variableName = getSafeName(chunk.suggestedVariableName, usedNames, null);
+		chunk.variableName = getSafeName(
+			chunk.suggestedVariableName,
+			usedNames,
+			null,
+		);
 	}
 	for (const chunk of deconflictedNamespace) {
 		chunk.namespaceVariableName = getSafeName(
 			`${chunk.suggestedVariableName}__namespace`,
 			usedNames,
-			null
+			null,
 		);
 	}
 	for (const externalModule of deconflictedDefault) {
 		externalModule.defaultVariableName =
 			deconflictedNamespace.has(externalModule) &&
-			canDefaultBeTakenFromNamespace(interop(externalModule.id), externalLiveBindings)
+			canDefaultBeTakenFromNamespace(
+				interop(externalModule.id),
+				externalLiveBindings,
+			)
 				? externalModule.namespaceVariableName
-				: getSafeName(`${externalModule.suggestedVariableName}__default`, usedNames, null);
+				: getSafeName(
+						`${externalModule.suggestedVariableName}__default`,
+						usedNames,
+						null,
+					);
 	}
 	for (const variable of imports) {
 		const module = variable.module;
 		if (module instanceof ExternalModule) {
 			const chunk = externalChunkByModule.get(module)!;
 			const name = variable.name;
-			if (name === 'default') {
+			if (name === "default") {
 				const moduleInterop = interop(module.id);
-				const variableName = defaultInteropHelpersByInteropType[moduleInterop]
+				const variableName = defaultInteropHelpersByInteropType[
+					moduleInterop
+				]
 					? chunk.defaultVariableName
 					: chunk.variableName;
 				if (isDefaultAProperty(moduleInterop, externalLiveBindings)) {
-					variable.setRenderNames(variableName, 'default');
+					variable.setRenderNames(variableName, "default");
 				} else {
 					variable.setRenderNames(null, variableName);
 				}
-			} else if (name === '*') {
+			} else if (name === "*") {
 				variable.setRenderNames(
 					null,
 					namespaceInteropHelpersByInteropType[interop(module.id)]
 						? chunk.namespaceVariableName
-						: chunk.variableName
+						: chunk.variableName,
 				);
 			} else {
 				// if the second parameter is `null`, it uses its "name" for the property name
@@ -193,14 +228,16 @@ function deconflictImportsOther(
 			if (preserveModules && variable.isNamespace) {
 				variable.setRenderNames(
 					null,
-					chunk.exportMode === 'default' ? chunk.namespaceVariableName : chunk.variableName
+					chunk.exportMode === "default"
+						? chunk.namespaceVariableName
+						: chunk.variableName,
 				);
-			} else if (chunk.exportMode === 'default') {
+			} else if (chunk.exportMode === "default") {
 				variable.setRenderNames(null, chunk.variableName);
 			} else {
 				variable.setRenderNames(
 					chunk.variableName,
-					chunk.getVariableExportName(variable) as string | null
+					chunk.getVariableExportName(variable) as string | null,
 				);
 			}
 		}
@@ -210,7 +247,7 @@ function deconflictImportsOther(
 function deconflictTopLevelVariables(
 	usedNames: Set<string>,
 	modules: readonly Module[],
-	includedNamespaces: ReadonlySet<Module>
+	includedNamespaces: ReadonlySet<Module>,
 ): void {
 	for (const module of modules) {
 		for (const variable of module.scope.variables.values()) {
@@ -219,12 +256,17 @@ function deconflictTopLevelVariables(
 				// this will only happen for exports in some formats
 				!(
 					variable.renderBaseName ||
-					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
+					(variable instanceof ExportDefaultVariable &&
+						variable.getOriginalVariable() !== variable)
 				)
 			) {
 				variable.setRenderNames(
 					null,
-					getSafeName(variable.name, usedNames, variable.forbiddenNames)
+					getSafeName(
+						variable.name,
+						usedNames,
+						variable.forbiddenNames,
+					),
 				);
 			}
 		}
@@ -232,7 +274,11 @@ function deconflictTopLevelVariables(
 			const namespace = module.namespace;
 			namespace.setRenderNames(
 				null,
-				getSafeName(namespace.name, usedNames, namespace.forbiddenNames)
+				getSafeName(
+					namespace.name,
+					usedNames,
+					namespace.forbiddenNames,
+				),
 			);
 		}
 	}

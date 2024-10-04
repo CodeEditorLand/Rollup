@@ -1,30 +1,39 @@
-import type MagicString from 'magic-string';
-import type { HasEffectsContext } from '../ExecutionContext';
-import type { NodeInteraction } from '../NodeInteractions';
+import type MagicString from "magic-string";
+
+import type { HasEffectsContext } from "../ExecutionContext";
 import {
 	INTERACTION_ACCESSED,
 	INTERACTION_ASSIGNED,
-	INTERACTION_CALLED
-} from '../NodeInteractions';
-import type { ObjectPath } from '../utils/PathTracker';
+	INTERACTION_CALLED,
+	type NodeInteraction,
+} from "../NodeInteractions";
+import type { ObjectPath } from "../utils/PathTracker";
 import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	type MemberDescription
-} from '../values';
-import type * as NodeType from './NodeType';
+	type MemberDescription,
+} from "../values";
+import type * as NodeType from "./NodeType";
 import {
+	UNKNOWN_RETURN_EXPRESSION,
+	UnknownValue,
 	type ExpressionEntity,
 	type LiteralValueOrUnknown,
-	UNKNOWN_RETURN_EXPRESSION,
-	UnknownValue
-} from './shared/Expression';
-import { type GenericEsTreeNode, NodeBase } from './shared/Node';
+} from "./shared/Expression";
+import { NodeBase, type GenericEsTreeNode } from "./shared/Node";
 
-export type LiteralValue = string | boolean | null | number | RegExp | undefined;
+export type LiteralValue =
+	| string
+	| boolean
+	| null
+	| number
+	| RegExp
+	| undefined;
 
-export default class Literal<T extends LiteralValue = LiteralValue> extends NodeBase {
+export default class Literal<
+	T extends LiteralValue = LiteralValue,
+> extends NodeBase {
 	declare regex?: {
 		flags: string;
 		pattern: string;
@@ -40,8 +49,9 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		if (
 			path.length > 0 ||
 			// unknown literals can also be null but do not start with an "n"
-			(this.value === null && this.scope.context.code.charCodeAt(this.start) !== 110) ||
-			typeof this.value === 'bigint' ||
+			(this.value === null &&
+				this.scope.context.code.charCodeAt(this.start) !== 110) ||
+			typeof this.value === "bigint" ||
 			// to support shims for regular expressions
 			this.scope.context.code.charCodeAt(this.start) === 47
 		) {
@@ -51,7 +61,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 	}
 
 	getReturnExpressionWhenCalledAtPath(
-		path: ObjectPath
+		path: ObjectPath,
 	): [expression: ExpressionEntity, isPure: boolean] {
 		if (path.length !== 1) return UNKNOWN_RETURN_EXPRESSION;
 		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
@@ -60,7 +70,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 	hasEffectsOnInteractionAtPath(
 		path: ObjectPath,
 		interaction: NodeInteraction,
-		context: HasEffectsContext
+		context: HasEffectsContext,
 	): boolean {
 		switch (interaction.type) {
 			case INTERACTION_ACCESSED: {
@@ -79,7 +89,12 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 				}
 				return (
 					path.length !== 1 ||
-					hasMemberEffectWhenCalled(this.members, path[0], interaction, context)
+					hasMemberEffectWhenCalled(
+						this.members,
+						path[0],
+						interaction,
+						context,
+					)
 				);
 			}
 		}
@@ -96,8 +111,11 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 	}
 
 	render(code: MagicString): void {
-		if (typeof this.value === 'string') {
-			(code.indentExclusionRanges as [number, number][]).push([this.start + 1, this.end - 1]);
+		if (typeof this.value === "string") {
+			(code.indentExclusionRanges as [number, number][]).push([
+				this.start + 1,
+				this.end - 1,
+			]);
 		}
 	}
 }

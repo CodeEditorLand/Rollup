@@ -1,10 +1,11 @@
-import { decode, encode } from '@jridgewell/sourcemap-codec';
+import { decode, encode } from "@jridgewell/sourcemap-codec";
+
 import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
 	ExistingRawSourceMap,
-	SourceMapInput
-} from '../rollup/types';
+	SourceMapInput,
+} from "../rollup/types";
 
 // While the types for SourceMapInput are what we expect to recieve from plugins, there are cases
 // in the wild where plugins return `{mappings: null}`, so we want this function to be a little more
@@ -13,14 +14,21 @@ interface UnexpectedInput {
 	mappings: null | undefined;
 }
 
-type Input = SourceMapInput | UnexpectedInput | ExistingDecodedSourceMap | undefined;
+type Input =
+	| SourceMapInput
+	| UnexpectedInput
+	| ExistingDecodedSourceMap
+	| undefined;
 
 interface CachedSourcemapData {
 	encodedMappings: string | undefined;
-	decodedMappings: ExistingDecodedSourceMap['mappings'] | undefined;
+	decodedMappings: ExistingDecodedSourceMap["mappings"] | undefined;
 }
 
-const sourceMapCache = new WeakMap<ExistingDecodedSourceMap, CachedSourcemapData>();
+const sourceMapCache = new WeakMap<
+	ExistingDecodedSourceMap,
+	CachedSourcemapData
+>();
 
 /**
  * This clears the decoded array and falls back to the encoded string form.
@@ -36,7 +44,7 @@ function resetCacheToEncoded(cache: CachedSourcemapData) {
 
 export function resetSourcemapCache(
 	map: ExistingDecodedSourceMap | null,
-	sourcemapChain?: DecodedSourceMapOrMissing[]
+	sourcemapChain?: DecodedSourceMapOrMissing[],
 ) {
 	if (map) {
 		const cache = sourceMapCache.get(map);
@@ -57,12 +65,14 @@ export function resetSourcemapCache(
 }
 
 export function decodedSourcemap(map: null | undefined): null;
-export function decodedSourcemap(map: Exclude<Input, null | undefined>): ExistingDecodedSourceMap;
+export function decodedSourcemap(
+	map: Exclude<Input, null | undefined>,
+): ExistingDecodedSourceMap;
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null;
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	if (!map) return null;
 
-	if (typeof map === 'string') {
+	if (typeof map === "string") {
 		map = JSON.parse(map) as ExistingRawSourceMap;
 	}
 	if (!map.mappings) {
@@ -70,7 +80,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 			mappings: [],
 			names: [],
 			sources: [],
-			version: 3
+			version: 3,
 		};
 	}
 
@@ -78,7 +88,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	const isAlreadyDecoded = Array.isArray(originalMappings);
 	const cache: CachedSourcemapData = {
 		decodedMappings: isAlreadyDecoded ? originalMappings : undefined,
-		encodedMappings: isAlreadyDecoded ? undefined : originalMappings
+		encodedMappings: isAlreadyDecoded ? undefined : originalMappings,
 	};
 
 	const decodedMap = {
@@ -94,10 +104,12 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 			// The only scenario where cache.encodedMappings should be undefined is if the map
 			// this was constructed from was already decoded, or if mappings was set to a new
 			// decoded string. In either case, this line shouldn't get hit.
-			cache.decodedMappings = cache.encodedMappings ? decode(cache.encodedMappings) : [];
+			cache.decodedMappings = cache.encodedMappings
+				? decode(cache.encodedMappings)
+				: [];
 			cache.encodedMappings = undefined;
 			return cache.decodedMappings;
-		}
+		},
 	};
 
 	sourceMapCache.set(decodedMap, cache);
