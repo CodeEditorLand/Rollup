@@ -1,6 +1,7 @@
-import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
-import { blue, bold, cyan, green, magenta, red, yellow } from './colors.js';
+import { spawn } from "node:child_process";
+import { readFile } from "node:fs/promises";
+
+import { blue, bold, cyan, green, magenta, red, yellow } from "./colors.js";
 
 const colors = [cyan, yellow, blue, red, green, magenta];
 let nextColorIndex = 0;
@@ -12,9 +13,12 @@ export function runWithEcho(command, parameters, options) {
 		const cmdString = formatCommand(command, parameters);
 		console.error(bold(`\n${color`Run>`} ${cmdString}`));
 
-		const childProcess = spawn(command, parameters, { stdio: 'inherit', ...options });
+		const childProcess = spawn(command, parameters, {
+			stdio: "inherit",
+			...options,
+		});
 
-		childProcess.on('close', code => {
+		childProcess.on("close", (code) => {
 			if (code) {
 				reject(new Error(`"${cmdString}" exited with code ${code}.`));
 			} else {
@@ -33,14 +37,18 @@ export function runWithEcho(command, parameters, options) {
 export function runAndGetStdout(command, parameters) {
 	return new Promise((resolve, reject) => {
 		const childProcess = spawn(command, parameters);
-		let stdout = '';
+		let stdout = "";
 
 		childProcess.stderr.pipe(process.stderr);
-		childProcess.stdout.on('data', data => (stdout += String(data)));
+		childProcess.stdout.on("data", (data) => (stdout += String(data)));
 
-		childProcess.on('close', code => {
+		childProcess.on("close", (code) => {
 			if (code) {
-				reject(new Error(`"${formatCommand(command, parameters)}" exited with code ${code}.`));
+				reject(
+					new Error(
+						`"${formatCommand(command, parameters)}" exited with code ${code}.`,
+					),
+				);
 			} else {
 				resolve(stdout.trim());
 			}
@@ -49,7 +57,7 @@ export function runAndGetStdout(command, parameters) {
 }
 
 function formatCommand(command, parameters) {
-	return [command, ...parameters].join(' ');
+	return [command, ...parameters].join(" ");
 }
 
 /**
@@ -57,6 +65,6 @@ function formatCommand(command, parameters) {
  * @returns {Promise<Record<string, any>>}
  */
 export async function readJson(file) {
-	const content = await readFile(file, 'utf8');
+	const content = await readFile(file, "utf8");
 	return JSON.parse(content);
 }
